@@ -238,6 +238,7 @@ const Sidebar = () => {
 
   const handleSwitchContext = async (name: string) => {
     try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       await useDockerContext(name);
       showSuccess(`Switched to context: ${name}`);
       await fetchContexts();
