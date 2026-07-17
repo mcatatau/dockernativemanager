@@ -20,11 +20,11 @@ import { cn } from "@/lib/utils";
 import { deleteNetwork, createNetwork, Network, inspectNetwork, pruneNetworks, connectContainerToNetwork, disconnectContainerFromNetwork, getContainers } from "@/lib/docker";
 import {
   Table,
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -57,8 +57,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { showSuccess, showError } from "@/utils/toast";
-import { 
-  Dialog, 
+import {
+  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -153,14 +153,14 @@ const Networks = () => {
 
   const filtered = networks.filter(n => {
     const matchesSearch = n.name.toLowerCase().includes(search.toLowerCase()) ||
-                          n.driver.toLowerCase().includes(search.toLowerCase());
+      n.driver.toLowerCase().includes(search.toLowerCase());
     const matchesDriver = driverFilter === "all" || n.driver === driverFilter;
     return matchesSearch && matchesDriver;
   }).sort((a, b) => {
     if (!sortConfig) return 0;
     const { key, direction } = sortConfig;
     let comparison = 0;
-    
+
     if (key === 'name') {
       comparison = a.name.localeCompare(b.name);
     } else if (key === 'id') {
@@ -170,7 +170,7 @@ const Networks = () => {
     } else if (key === 'scope') {
       comparison = a.scope.localeCompare(b.scope);
     }
-    
+
     return direction === 'asc' ? comparison : -comparison;
   });
 
@@ -202,7 +202,7 @@ const Networks = () => {
     if (selectedIds.length === 0) return;
     const count = selectedIds.length;
     let successCount = 0;
-    
+
     for (const id of selectedIds) {
       try {
         await deleteNetwork(id);
@@ -211,7 +211,7 @@ const Networks = () => {
         console.error(`Failed to delete network ${id}:`, err);
       }
     }
-    
+
     showSuccess(`${successCount}/${count} networks deleted`);
     setSelectedIds([]);
     refreshNetworks();
@@ -339,6 +339,11 @@ const Networks = () => {
               className="bg-card border-border text-foreground pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 h-11"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                  e.currentTarget.select();
+                }
+              }}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -370,7 +375,7 @@ const Networks = () => {
                     className="border-border data-[state=checked]:bg-blue-600"
                   />
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('name')}
                 >
@@ -381,7 +386,7 @@ const Networks = () => {
                     )}
                   </div>
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('id')}
                 >
@@ -392,7 +397,7 @@ const Networks = () => {
                     )}
                   </div>
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('driver')}
                 >
@@ -403,7 +408,7 @@ const Networks = () => {
                     )}
                   </div>
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('scope')}
                 >
@@ -417,86 +422,86 @@ const Networks = () => {
                 <TableHead className="text-muted-foreground font-medium text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
-          <TableBody>
-            {isInitialLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i} className="border-border">
-                  <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+            <TableBody>
+              {isInitialLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-border">
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                  </TableRow>
+                ))
+              ) : filtered.length > 0 ? (
+                filtered.map((n) => (
+                  <TableRow
+                    key={n.id}
+                    className={cn(
+                      "border-border hover:bg-muted transition-colors",
+                      selectedIds.includes(n.id) && "bg-muted"
+                    )}
+                  >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(n.id)}
+                        onCheckedChange={() => toggleSelect(n.id)}
+                        className="border-border data-[state=checked]:bg-blue-600"
+                      />
+                    </TableCell>
+                    <TableCell className="font-semibold text-foreground">
+                      <div className="flex items-center gap-2">
+                        <Share2 className="w-4 h-4 text-emerald-500" />
+                        {n.name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs font-mono">{n.id}</TableCell>
+                    <TableCell>
+                      <span className="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded border border-border font-mono">
+                        {n.driver}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs capitalize">{n.scope}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-[160px] bg-card border-border">
+                          <DropdownMenuLabel className="text-muted-foreground">Actions</DropdownMenuLabel>
+                          <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openInspect(n)}>
+                            <Eye className="mr-2 h-4 w-4 text-emerald-500" />
+                            <span>Inspect</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => {
+                            setConnectingNetwork(n);
+                            setShowConnectDialog(true);
+                          }}>
+                            <Link className="mr-2 h-4 w-4 text-blue-500" />
+                            <span>Connect</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-border" />
+                          <DropdownMenuItem onClick={() => handleDelete(n.id, n.name)} className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 hover:bg-rose-500/10 cursor-pointer">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                    No networks found.
+                  </TableCell>
                 </TableRow>
-              ))
-            ) : filtered.length > 0 ? (
-              filtered.map((n) => (
-                <TableRow
-                  key={n.id}
-                  className={cn(
-                    "border-border hover:bg-muted transition-colors",
-                    selectedIds.includes(n.id) && "bg-muted"
-                  )}
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.includes(n.id)}
-                      onCheckedChange={() => toggleSelect(n.id)}
-                      className="border-border data-[state=checked]:bg-blue-600"
-                    />
-                  </TableCell>
-                  <TableCell className="font-semibold text-foreground">
-                    <div className="flex items-center gap-2">
-                      <Share2 className="w-4 h-4 text-emerald-500" />
-                      {n.name}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs font-mono">{n.id}</TableCell>
-                  <TableCell>
-                    <span className="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded border border-border font-mono">
-                      {n.driver}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs capitalize">{n.scope}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[160px] bg-card border-border">
-                        <DropdownMenuLabel className="text-muted-foreground">Actions</DropdownMenuLabel>
-                        <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openInspect(n)}>
-                          <Eye className="mr-2 h-4 w-4 text-emerald-500" />
-                          <span>Inspect</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => {
-                          setConnectingNetwork(n);
-                          setShowConnectDialog(true);
-                        }}>
-                          <Link className="mr-2 h-4 w-4 text-blue-500" />
-                          <span>Connect</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem onClick={() => handleDelete(n.id, n.name)} className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 hover:bg-rose-500/10 cursor-pointer">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                  No networks found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+              )}
+            </TableBody>
           </Table>
         </div>
       </div>

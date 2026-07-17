@@ -27,11 +27,11 @@ import { useDocker } from "@/context/DockerContext";
 import { cn } from "@/lib/utils";
 import {
   Table,
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
@@ -157,13 +157,13 @@ const Swarm = () => {
     }
   };
 
-  const filteredNodes = nodes.filter(n => 
-    n.hostname.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredNodes = nodes.filter(n =>
+    n.hostname.toLowerCase().includes(search.toLowerCase()) ||
     n.id.toLowerCase().includes(search.toLowerCase())
   );
 
-  const filteredServices = services.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredServices = services.filter(s =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.id.toLowerCase().includes(search.toLowerCase()) ||
     s.stack.toLowerCase().includes(search.toLowerCase())
   );
@@ -255,6 +255,11 @@ const Swarm = () => {
                 value={advertiseAddr}
                 onChange={(e) => setAdvertiseAddr(e.target.value)}
                 className="bg-muted/30 border-muted-foreground/20 h-11 focus-visible:ring-0 focus-visible:ring-offset-0"
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                    e.currentTarget.select();
+                  }
+                }}
               />
               <p className="text-xs text-muted-foreground italic">
                 The address that other nodes in the swarm can use to reach this node.
@@ -435,8 +440,8 @@ const Swarm = () => {
                       </TableCell>
                       <TableCell className="text-xs font-mono">{service.ports || "-"}</TableCell>
                       <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleInspectService(service.id, service.name)}
                         >
@@ -494,7 +499,7 @@ const Swarm = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge 
+                        <Badge
                           variant={node.role === 'manager' ? "default" : "secondary"}
                           className="capitalize"
                         >
@@ -514,8 +519,8 @@ const Swarm = () => {
                       <TableCell className="font-mono text-xs">{node.ip_address}</TableCell>
                       <TableCell className="text-xs">{node.engine_version}</TableCell>
                       <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleInspectNode(node.id, node.hostname)}
                         >

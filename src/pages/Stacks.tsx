@@ -20,11 +20,11 @@ import { cn } from "@/lib/utils";
 import { deployStack, removeStack, getStackCompose, Stack, getContainers, updateStack, getStackLogs, startStack, stopStack, restartStack, scaleStackService } from "@/lib/docker";
 import {
   Table,
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,11 +65,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { showSuccess, showError } from "@/utils/toast";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
@@ -151,9 +151,9 @@ volumes:
 ];
 
 const Stacks = () => {
-  const { 
-    stacks, 
-    loading, 
+  const {
+    stacks,
+    loading,
     refreshStacks,
     deployingStacks,
     deployStackBackground
@@ -264,14 +264,14 @@ const Stacks = () => {
 
   const handleDeploy = async () => {
     if (!newName || !composeContent) return;
-    
+
     // Close dialog immediately and clear inputs
     setShowDeployDialog(false);
-    
+
     // If we are editing, we can still use background deploy or create a separate one.
     // Let's use the background one for both since it just calls deploy_stack.
     await deployStackBackground(newName, composeContent, envContent, deployStackType);
-    
+
     if (isEditing) {
       setIsEditing(false);
     }
@@ -321,7 +321,7 @@ const Stacks = () => {
       stack_type: "Compose",
       isDeploying: true,
     };
-  }).filter(s => 
+  }).filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -335,7 +335,7 @@ const Stacks = () => {
     if (!sortConfig) return 0;
     const { key, direction } = sortConfig;
     let comparison = 0;
-    
+
     if (key === 'name') {
       comparison = a.name.localeCompare(b.name);
     } else if (key === 'status') {
@@ -347,7 +347,7 @@ const Stacks = () => {
     } else if (key === 'updated') {
       comparison = (a.updated || 0) - (b.updated || 0);
     }
-    
+
     return direction === 'asc' ? comparison : -comparison;
   });
 
@@ -379,7 +379,7 @@ const Stacks = () => {
       if (action === 'start') await startContainer(containerId);
       else if (action === 'stop') await stopContainer(containerId);
       else if (action === 'restart') await restartContainer(containerId);
-      
+
       showSuccess(`Container ${action}ed`);
       if (selectedStack) {
         // Wait a bit for Docker to update state before refreshing details
@@ -405,9 +405,9 @@ const Stacks = () => {
       if (action === 'start') await startStack(name, type);
       else if (action === 'stop') await stopStack(name, type);
       else if (action === 'restart') await restartStack(name, type);
-      
+
       showSuccess(`Stack ${action}ed successfully`);
-      
+
       // Wait a bit before refresh to allow Docker state to catch up
       setTimeout(() => {
         refreshStacks();
@@ -472,7 +472,7 @@ const Stacks = () => {
 
   const handleBulkStackAction = async (action: 'start' | 'stop' | 'restart' | 'update') => {
     if (selectedIds.length === 0) return;
-    
+
     setIsActionLoading(true);
     setProcessingStacks(prev => {
       const next = new Set(prev);
@@ -481,7 +481,7 @@ const Stacks = () => {
     });
 
     let success = 0;
-    
+
     for (const name of selectedIds) {
       try {
         const stack = combinedStacks.find(s => s.name === name);
@@ -498,10 +498,10 @@ const Stacks = () => {
         console.error(`Error performing bulk action ${action} on stack ${name}:`, err);
       }
     }
-    
+
     showSuccess(`${success}/${selectedIds.length} stacks ${action === 'update' ? 'updated' : action + 'ed'} successfully`);
     setSelectedIds([]);
-    
+
     setTimeout(() => {
       refreshStacks();
       setProcessingStacks(prev => {
@@ -563,8 +563,8 @@ const Stacks = () => {
             <p className="text-muted-foreground mt-1">Manage Docker Compose projects and multi-container deployments.</p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="bg-card border-border text-foreground"
               onClick={handleRefresh}
               disabled={isRefreshing}
@@ -590,8 +590,8 @@ const Stacks = () => {
             <div className="bg-background/80 backdrop-blur-md border border-border shadow-2xl rounded-full px-6 py-3 flex items-center gap-4">
               <span className="text-sm font-bold border-r pr-4 mr-2">{selectedIds.length} Selected</span>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 rounded-full"
                   onClick={() => handleBulkStackAction('start')}
@@ -600,8 +600,8 @@ const Stacks = () => {
                   <Play className="w-4 h-4 mr-1.5" />
                   Start
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20 rounded-full"
                   onClick={() => handleBulkStackAction('stop')}
@@ -610,8 +610,8 @@ const Stacks = () => {
                   <Square className="w-4 h-4 mr-1.5" />
                   Stop
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="bg-blue-500/10 border-blue-500/20 text-blue-500 hover:bg-blue-500/20 rounded-full"
                   onClick={() => handleBulkStackAction('restart')}
@@ -620,8 +620,8 @@ const Stacks = () => {
                   <RotateCcw className="w-4 h-4 mr-1.5" />
                   Restart
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="bg-purple-500/10 border-purple-500/20 text-purple-500 hover:bg-purple-500/20 rounded-full"
                   onClick={() => handleBulkStackAction('update')}
@@ -630,8 +630,8 @@ const Stacks = () => {
                   <RefreshCw className={cn("w-4 h-4 mr-1.5", isUpdating && "animate-spin")} />
                   Update
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="bg-rose-500/10 border-rose-500/20 text-rose-500 hover:bg-rose-500/20 rounded-full"
                   onClick={handleBulkDelete}
@@ -656,11 +656,16 @@ const Stacks = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search stacks..." 
+            <Input
+              placeholder="Search stacks..."
               className="bg-card border-border text-foreground pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 h-11"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                  e.currentTarget.select();
+                }
+              }}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -686,14 +691,14 @@ const Stacks = () => {
             <TableHeader className="bg-card/80">
               <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="w-12">
-                  <Checkbox 
+                  <Checkbox
                     checked={filtered.length > 0 && selectedIds.length === filtered.length}
                     onCheckedChange={toggleSelectAll}
                     className="border-border data-[state=checked]:bg-blue-600"
                     aria-label="Select all"
                   />
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('name')}
                 >
@@ -704,7 +709,7 @@ const Stacks = () => {
                     )}
                   </div>
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('status')}
                 >
@@ -805,16 +810,16 @@ const Stacks = () => {
                           s.status === "running"
                             ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                             : s.status === "completed"
-                            ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                            : s.status === "partial"
-                            ? "bg-indigo-500/10 text-indigo-500 border-indigo-500/20"
-                            : s.status === "failed"
-                            ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
-                            : (s.status === "stopped" || s.status === "inactive")
-                            ? "bg-slate-500/10 text-slate-500 border-slate-500/20"
-                            : s.isDeploying
-                            ? "bg-blue-500/10 text-blue-500 border-blue-500/20 animate-pulse"
-                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                              ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                              : s.status === "partial"
+                                ? "bg-indigo-500/10 text-indigo-500 border-indigo-500/20"
+                                : s.status === "failed"
+                                  ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                                  : (s.status === "stopped" || s.status === "inactive")
+                                    ? "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                                    : s.isDeploying
+                                      ? "bg-blue-500/10 text-blue-500 border-blue-500/20 animate-pulse"
+                                      : "bg-amber-500/10 text-amber-500 border-amber-500/20"
                         )}>
                           {s.status}
                         </Badge>
@@ -915,7 +920,7 @@ const Stacks = () => {
               Compose project with {selectedStack?.services} services.
             </SheetDescription>
           </SheetHeader>
-          
+
           <div className="flex-1 overflow-auto p-8 space-y-6">
             <div className="rounded-lg border border-border bg-card/50 p-4">
               <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -1111,7 +1116,7 @@ const Stacks = () => {
                         defaultPath: `${logsStack.name}-logs.txt`,
                         filters: [{ name: 'Text', extensions: ['txt'] }]
                       });
-                      
+
                       if (filePath) {
                         await writeTextFile(filePath, visibleLogs);
                         showSuccess("Logs saved successfully");
@@ -1138,7 +1143,7 @@ const Stacks = () => {
               </div>
 
               {/* Logs Display */}
-              <div 
+              <div
                 ref={logScrollRef}
                 className={cn(
                   "bg-card rounded-lg p-4 font-mono text-xs overflow-auto border border-border h-full",
