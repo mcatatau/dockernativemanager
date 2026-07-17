@@ -1082,6 +1082,11 @@ const Stacks = () => {
                   className="h-8 w-[180px] text-xs bg-muted border-border"
                   value={logSearchTerm}
                   onChange={(e) => setLogSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                      e.currentTarget.select();
+                    }
+                  }}
                 />
 
                 <Input
