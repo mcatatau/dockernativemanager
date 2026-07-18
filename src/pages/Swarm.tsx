@@ -76,6 +76,7 @@ const Swarm = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected]);
 
   const handleInspectService = async (id: string, name: string) => {

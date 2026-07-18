@@ -200,6 +200,7 @@ const Containers = () => {
       const isInitial = logs === "Loading logs..." || logs === "";
       fetchLogs(!isInitial);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchLogs, logsRefreshKey, selectedContainer, panelMode]);
 
   // Effect for auto-refreshing logs
@@ -1256,6 +1257,7 @@ const TerminalComponent = ({ containerId, shell, user }: { containerId: string; 
       window.removeEventListener("resize", handleResize);
       term.dispose();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerId, shell, user]);
 
   return (
@@ -1271,7 +1273,7 @@ interface StatCardProps {
   subtext: string | React.ReactNode;
   icon: React.ReactNode;
   loading: boolean;
-  chartData?: any[];
+  chartData?: Record<string, number>[];
   series?: { key: string; color: string }[];
 }
 

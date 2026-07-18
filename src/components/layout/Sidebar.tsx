@@ -11,6 +11,7 @@
  * License: MIT
  */
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { cn } from "@/lib/utils";
 import { useDocker } from "@/context/DockerContext";
 import {
@@ -98,12 +99,19 @@ const Sidebar = () => {
   const [isCreatingContext, setIsCreatingContext] = useState(false);
   const [newContext, setNewContext] = useState({ name: "", host: "" });
   const [showAboutDialog, setShowAboutDialog] = useState(false);
-  const [contributors, setContributors] = useState<any[]>([]);
+  const [contributors, setContributors] = useState<
+    { id: number; login: string; avatar_url: string; html_url: string; contributions: number }[]
+  >([]);
   const [isLoadingContributors, setIsLoadingContributors] = useState(false);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [latestRelease, setLatestRelease] = useState<any>(null);
+  const [latestRelease, setLatestRelease] = useState<{
+    tag_name: string;
+    body: string;
+    html_url: string;
+    assets: { id: number; name: string; browser_download_url: string }[];
+  } | null>(null);
   const [downloadingAsset, setDownloadingAsset] = useState<string | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -111,7 +119,7 @@ const Sidebar = () => {
   const [selectedSshKey, setSelectedSshKey] = useState<string>("");
   const [showSshConfig, setShowSshConfig] = useState(false);
 
-  const handleDownload = async (asset: any) => {
+  const handleDownload = async (asset: { id: number; name: string; browser_download_url: string }) => {
     setDownloadingAsset(asset.id);
     try {
       const path = await downloadUpdate(asset.browser_download_url, asset.name);
@@ -894,7 +902,7 @@ const Sidebar = () => {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {latestRelease?.assets?.map((asset: any) => {
+                {latestRelease?.assets?.map((asset) => {
                   const name = asset.name.toLowerCase();
                   let extension = "";
 

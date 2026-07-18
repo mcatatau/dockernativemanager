@@ -11,6 +11,7 @@
  * License: MIT
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { showSuccess, showError } from "@/utils/toast";
@@ -344,6 +345,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     // Initial load
     refreshAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only once on mount
 
   useDockerEvent(

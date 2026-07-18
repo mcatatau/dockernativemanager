@@ -575,7 +575,7 @@ const Networks = () => {
                       </TableHeader>
                       <TableBody>
                         {Object.entries(parsedInspectData[0]?.Containers || parsedInspectData.Containers || {}).map(
-                          ([id, info]: [string, any]) => (
+                          ([id, info]: [string, { Name: string; IPv4Address: string; MacAddress: string }]) => (
                             <TableRow key={id} className="border-border hover:bg-muted/50">
                               <TableCell className="font-medium">{info.Name}</TableCell>
                               <TableCell className="font-mono text-xs">{info.IPv4Address || "N/A"}</TableCell>

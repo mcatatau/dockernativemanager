@@ -511,7 +511,7 @@ interface StatCardProps {
   subtext: string | React.ReactNode;
   icon: React.ReactNode;
   loading: boolean;
-  chartData?: any[];
+  chartData?: Record<string, number>[];
   series?: { key: string; color: string }[];
 }
 

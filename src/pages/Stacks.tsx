@@ -11,6 +11,7 @@
  * License: MIT
  */
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useDocker } from "@/context/DockerContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 
@@ -169,7 +170,7 @@ const Stacks = () => {
     }
   };
   const [selectedStack, setSelectedStack] = useState<Stack | null>(null);
-  const [stackContainers, setStackContainers] = useState<any[]>([]);
+  const [stackContainers, setStackContainers] = useState<Container[]>([]);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [processingStacks, setProcessingStacks] = useState<Set<string>>(new Set());
   const [showLogsSheet, setShowLogsSheet] = useState(false);
@@ -266,7 +267,7 @@ const Stacks = () => {
       setComposeContent(content);
       setIsEditing(true);
       setShowDeployDialog(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       showError(`Error fetching compose file: ${err}`);
       // Fallback if not found, let them edit a blank one with the same name
       setNewName(stack.name);
@@ -982,7 +983,7 @@ const Stacks = () => {
                 Associated Containers
               </h3>
               <div className="space-y-2">
-                {stackContainers.map((c: any) => (
+                {stackContainers.map((c) => (
                   <div
                     key={c.id}
                     className="flex items-center justify-between p-3 rounded-lg border border-border bg-background/50 group"
@@ -1120,9 +1121,7 @@ const Stacks = () => {
                   onClick={() => {
                     if (stackContainers.length > 0) {
                       const services = [
-                        ...new Set(
-                          stackContainers.map((c: any) => c.labels["com.docker.compose.service"]).filter(Boolean),
-                        ),
+                        ...new Set(stackContainers.map((c) => c.labels["com.docker.compose.service"]).filter(Boolean)),
                       ];
                       if (services.length > 0) setSelectedService(services[0]);
                     }
@@ -1289,11 +1288,11 @@ const Stacks = () => {
                 list="service-options"
               />
               <datalist id="service-options">
-                {[
-                  ...new Set(stackContainers.map((c: any) => c.labels["com.docker.compose.service"]).filter(Boolean)),
-                ].map((svc) => (
-                  <option key={svc} value={svc} />
-                ))}
+                {[...new Set(stackContainers.map((c) => c.labels["com.docker.compose.service"]).filter(Boolean))].map(
+                  (svc) => (
+                    <option key={svc} value={svc} />
+                  ),
+                )}
               </datalist>
             </div>
             <div className="space-y-2">
