@@ -46,6 +46,7 @@ const Index = () => {
     hostStatsHistory,
     isConnected,
     loading,
+    hasLoadedOnce,
     manageService,
   } = useDocker();
 
@@ -106,7 +107,7 @@ const Index = () => {
         </div>
       </div>
 
-      {!isConnected && (
+      {hasLoadedOnce && !isConnected && (
         <Alert
           variant="destructive"
           className="bg-destructive/10 dark:bg-destructive/20 border-destructive/20 dark:border-destructive/40 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row md:items-center justify-between gap-4 backdrop-blur-md"

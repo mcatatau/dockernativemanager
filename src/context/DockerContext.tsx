@@ -66,6 +66,7 @@ interface DockerContextType {
   hostStatsHistory: HostStats[];
   isConnected: boolean;
   isManagingService: boolean;
+  hasLoadedOnce: boolean;
   loading: Record<string, boolean>;
   refreshAll: () => Promise<void>;
   refreshContainers: () => Promise<void>;
@@ -110,6 +111,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     networks: true,
     systemInfo: true,
   });
+  const [hasLoadedOnce, setHasLoadedOnce] = useState<boolean>(false);
 
   const refreshContainers = useCallback(async () => {
     try {
@@ -218,6 +220,8 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ]);
     } catch (err) {
       console.error("Error refreshing Docker data:", err);
+    } finally {
+      setHasLoadedOnce(true);
     }
   }, [refreshContainers, refreshStacks, refreshImages, refreshVolumes, refreshNetworks, refreshSystemInfo]);
 
@@ -462,6 +466,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         hostStatsHistory,
         isConnected,
         isManagingService,
+        hasLoadedOnce,
         loading,
         refreshAll,
         refreshContainers,
