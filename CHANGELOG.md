@@ -1,3 +1,10 @@
+# [1.15.0-beta.7](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.6...v1.15.0-beta.7) (2026-07-18)
+
+
+### Bug Fixes
+
+* ajustar layout e cores do skeleton e header dos botoes ([3691974](https://github.com/pedrofariasx/dockernativemanager/commit/3691974dd684d039e3d79730b756be8796f971d3))
+
 # [1.15.0-beta.6](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.5...v1.15.0-beta.6) (2026-07-18)
 
 
