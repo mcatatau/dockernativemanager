@@ -1,3 +1,10 @@
+# [1.15.0-beta.5](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.4...v1.15.0-beta.5) (2026-07-18)
+
+
+### Bug Fixes
+
+* aprimorar loading e alerta de daemon ([44bda3b](https://github.com/pedrofariasx/dockernativemanager/commit/44bda3b1220aff4b1dfdcd835e6ba9e9cf7a487e))
+
 # [1.15.0-beta.4](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.3...v1.15.0-beta.4) (2026-07-18)
 
 
