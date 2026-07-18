@@ -3,10 +3,10 @@
  * Project: docker-native-manager
  * Created: 2026-03-13
  * Author: Pedro Farias
- * 
+ *
  * Last Modified: Sun Mar 15 2026
  * Modified By: Pedro Farias
- * 
+ *
  * Copyright (c) 2026 Pedro Farias
  * License: MIT
  */
@@ -18,10 +18,7 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname,
-    );
+    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
   return (
