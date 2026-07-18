@@ -12,6 +12,7 @@
  */
 
 import { useMemo, memo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDocker } from "@/context/DockerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -156,6 +157,7 @@ const Index = () => {
           }
           icon={containersIcon}
           loading={isInitialLoading}
+          to="/containers"
         />
         <StatCard
           title="Images"
@@ -163,6 +165,7 @@ const Index = () => {
           subtext="Total images on disk"
           icon={imagesIcon}
           loading={isInitialLoading}
+          to="/images"
         />
         <StatCard
           title="Volumes"
@@ -170,6 +173,7 @@ const Index = () => {
           subtext="Local storage volumes"
           icon={volumesIcon}
           loading={isConnected && loading.volumes && volumes.length === 0}
+          to="/volumes"
         />
         <StatCard
           title="Networks"
@@ -177,6 +181,7 @@ const Index = () => {
           subtext="Docker networks"
           icon={networksIcon}
           loading={isConnected && loading.networks && networks.length === 0}
+          to="/networks"
         />
       </div>
 
@@ -513,46 +518,71 @@ interface StatCardProps {
   loading: boolean;
   chartData?: Record<string, number>[];
   series?: { key: string; color: string }[];
+  to?: string;
 }
 
-const StatCard = memo(({ title, value, subtext, icon, loading, chartData, series }: StatCardProps) => (
-  <Card className="bg-card border-border overflow-hidden relative group transition-colors hover:border-border/80">
-    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10 bg-transparent">
-      <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em]">{title}</CardTitle>
-      <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">{icon}</div>
-    </CardHeader>
-    <CardContent className="relative z-10 bg-transparent">
-      {loading ? (
-        <Skeleton className="h-8 w-24 mb-1" />
-      ) : (
-        <div className="text-2xl font-black text-foreground tracking-tight">{value !== undefined ? value : "0"}</div>
-      )}
-      <div className="text-[11px] text-muted-foreground mt-1 font-medium">
-        {loading ? <Skeleton className="h-3 w-32" /> : subtext}
-      </div>
-    </CardContent>
+const StatCard = memo(({ title, value, subtext, icon, loading, chartData, series, to }: StatCardProps) => {
+  const navigate = useNavigate();
+  const clickable = Boolean(to);
 
-    {!loading && chartData && chartData.length > 1 && series && (
-      <div className="absolute bottom-0 left-0 right-0 h-12 opacity-10 group-hover:opacity-25 transition-opacity duration-500 pointer-events-none">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-            {series.map((s) => (
-              <Line
-                key={s.key}
-                type="monotone"
-                dataKey={s.key}
-                stroke={s.color}
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={false}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    )}
-  </Card>
-));
+  const handleClick = () => {
+    if (to) navigate(to);
+  };
+
+  return (
+    <Card
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      className={`bg-card border-border overflow-hidden relative group transition-colors hover:border-border/80${
+        clickable ? " cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" : ""
+      }`}
+    >
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10 bg-transparent">
+        <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
+          {title}
+        </CardTitle>
+        <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">{icon}</div>
+      </CardHeader>
+      <CardContent className="relative z-10 bg-transparent">
+        {loading ? (
+          <Skeleton className="h-8 w-24 mb-1" />
+        ) : (
+          <div className="text-2xl font-black text-foreground tracking-tight">{value !== undefined ? value : "0"}</div>
+        )}
+        <div className="text-[11px] text-muted-foreground mt-1 font-medium">
+          {loading ? <Skeleton className="h-3 w-32" /> : subtext}
+        </div>
+      </CardContent>
+
+      {!loading && chartData && chartData.length > 1 && series && (
+        <div className="absolute bottom-0 left-0 right-0 h-12 opacity-10 group-hover:opacity-25 transition-opacity duration-500 pointer-events-none">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+              {series.map((s) => (
+                <Line
+                  key={s.key}
+                  type="monotone"
+                  dataKey={s.key}
+                  stroke={s.color}
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </Card>
+  );
+});
 
 StatCard.displayName = "StatCard";
 
