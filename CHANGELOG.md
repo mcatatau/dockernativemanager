@@ -1,3 +1,11 @@
+# [1.14.0-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.13.1-beta.1...v1.14.0-beta.1) (2026-07-18)
+
+
+### Features
+
+* habilita selecao global do input text com Ctrl + A ([63f26cb](https://github.com/pedrofariasx/dockernativemanager/commit/63f26cb1393eab21050646c4e2f73f4e5d6dec42))
+* habilita selecao global do input text com Ctrl + A 2 ([303f1d5](https://github.com/pedrofariasx/dockernativemanager/commit/303f1d5d42a007949b222cdfffbadc1395be9352))
+
 ## [1.13.1-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.13.0...v1.13.1-beta.1) (2026-07-17)
 
 
