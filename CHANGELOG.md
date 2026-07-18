@@ -1,3 +1,10 @@
+# [1.15.0-beta.3](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.2...v1.15.0-beta.3) (2026-07-18)
+
+
+### Bug Fixes
+
+* remover ícone ExternalLink duplicado no Sidebar ([c22a695](https://github.com/pedrofariasx/dockernativemanager/commit/c22a6954447cce005a4d8ac069de480ff5e9f514))
+
 # [1.15.0-beta.2](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.1...v1.15.0-beta.2) (2026-07-18)
 
 
