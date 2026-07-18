@@ -2,10 +2,10 @@
  * File: system.rs
  * Project: docker-native-manager
  * Created: 2026-03-17
- * 
+ *
  * Last Modified: Tue Mar 31 2026
  * Modified By: Pedro Farias
- * 
+ *
  */
 
 use crate::models::SystemInfo;
@@ -61,7 +61,10 @@ pub async fn download_update(url: String, filename: String) -> Result<String, St
         .map_err(|e| format!("Failed to execute curl: {}", e))?;
 
     if !output.status.success() {
-        return Err(format!("Download failed: {}", String::from_utf8_lossy(&output.stderr)));
+        return Err(format!(
+            "Download failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
     }
 
     Ok(download_path)
@@ -112,21 +115,21 @@ pub async fn manage_docker_service(action: String) -> Result<String, String> {
         "stop" => {
             IS_STOPPED_INTENTIONALLY.store(true, Ordering::SeqCst);
             "systemctl stop docker.socket docker.service"
-        },
+        }
         "start" => {
             IS_STOPPED_INTENTIONALLY.store(false, Ordering::SeqCst);
             "systemctl start docker.socket docker.service"
-        },
+        }
         "restart" => {
             IS_STOPPED_INTENTIONALLY.store(false, Ordering::SeqCst);
             "systemctl restart docker.service"
-        },
+        }
         "reconnect" => {
             IS_STOPPED_INTENTIONALLY.store(false, Ordering::SeqCst);
             // Stop any existing SSH tunnel so it will be re-established on next get_docker() call
             stop_ssh_tunnel();
             return Ok("Reconnection logic triggered".into());
-        },
+        }
         _ => return Err("Invalid action".to_string()),
     };
 
@@ -163,9 +166,11 @@ pub async fn list_docker_contexts() -> Result<Vec<crate::models::DockerContextIn
     let mut contexts = Vec::new();
 
     for line in stdout.lines() {
-        if line.trim().is_empty() { continue; }
+        if line.trim().is_empty() {
+            continue;
+        }
         let v: serde_json::Value = serde_json::from_str(line).map_err(|e| e.to_string())?;
-        
+
         contexts.push(crate::models::DockerContextInfo {
             name: v["Name"].as_str().unwrap_or_default().to_string(),
             description: v["Description"].as_str().unwrap_or_default().to_string(),
@@ -194,7 +199,13 @@ pub async fn use_docker_context(name: String) -> Result<(), String> {
 #[tauri::command]
 pub async fn create_docker_context(name: String, host: String) -> Result<(), String> {
     let output = std::process::Command::new("docker")
-        .args(["context", "create", &name, "--docker", &format!("host={}", host)])
+        .args([
+            "context",
+            "create",
+            &name,
+            "--docker",
+            &format!("host={}", host),
+        ])
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -224,29 +235,35 @@ pub async fn remove_docker_context(name: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn test_docker_connection(host: String, ssh_key: Option<String>) -> Result<String, String> {
+pub async fn test_docker_connection(
+    host: String,
+    ssh_key: Option<String>,
+) -> Result<String, String> {
     if host.starts_with("ssh://") {
         // For SSH URLs, connect via SSH and run docker info on the remote host
         let url_part = host.trim_start_matches("ssh://");
-        
+
         let mut ssh_cmd = std::process::Command::new("ssh");
         ssh_cmd
-            .arg("-o").arg("StrictHostKeyChecking=accept-new")
-            .arg("-o").arg("ConnectTimeout=10")
-            .arg("-o").arg("BatchMode=yes");
-        
+            .arg("-o")
+            .arg("StrictHostKeyChecking=accept-new")
+            .arg("-o")
+            .arg("ConnectTimeout=10")
+            .arg("-o")
+            .arg("BatchMode=yes");
+
         // If an SSH key is provided, use it
         if let Some(ref key) = ssh_key {
             if !key.is_empty() {
                 ssh_cmd.arg("-i").arg(key);
             }
         }
-        
+
         // Parse user@host[:port]
         if let Some(at_pos) = url_part.find('@') {
             let user = &url_part[..at_pos];
             let host_part = &url_part[at_pos + 1..];
-            
+
             if let Some(colon_pos) = host_part.rfind(':') {
                 let hostname = &host_part[..colon_pos];
                 let port = &host_part[colon_pos + 1..];
@@ -266,39 +283,52 @@ pub async fn test_docker_connection(host: String, ssh_key: Option<String>) -> Re
                 ssh_cmd.arg(url_part);
             }
         }
-        
+
         // Run docker info on the remote host
-        ssh_cmd.arg("docker").arg("info").arg("--format").arg("{{.Name}}");
-        
+        ssh_cmd
+            .arg("docker")
+            .arg("info")
+            .arg("--format")
+            .arg("{{.Name}}");
+
         let output = ssh_cmd
             .output()
             .map_err(|e| format!("Failed to execute SSH command: {}", e))?;
-        
+
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             if stderr.contains("Permission denied") || stderr.contains("publickey") {
                 return Err(format!("SSH authentication failed. Make sure you have selected the correct SSH key and that it is authorized on the remote server.\n\nDetails: {}", stderr.trim()));
             }
-            if stderr.contains("Connection refused") || stderr.contains("Connection timed out") || stderr.contains("No route to host") {
+            if stderr.contains("Connection refused")
+                || stderr.contains("Connection timed out")
+                || stderr.contains("No route to host")
+            {
                 return Err(format!("Cannot reach the remote host. Check the hostname/IP and that SSH port is open.\n\nDetails: {}", stderr.trim()));
             }
             if stderr.contains("docker: not found") || stderr.contains("command not found") {
-                return Err("SSH connection successful, but Docker is not installed on the remote host.".to_string());
+                return Err(
+                    "SSH connection successful, but Docker is not installed on the remote host."
+                        .to_string(),
+                );
             }
             if stderr.contains("permission denied") && stderr.contains("docker.sock") {
                 return Err("SSH connection successful, but the remote user does not have permission to access Docker.\n\nFix: Run on the remote server:\n  sudo usermod -aG docker YOUR_USER\n  # then logout and login again".to_string());
             }
             if stderr.is_empty() {
-                return Err("SSH connection failed. Check your host URL and SSH key configuration.".to_string());
+                return Err(
+                    "SSH connection failed. Check your host URL and SSH key configuration."
+                        .to_string(),
+                );
             }
             return Err(format!("Remote Docker error: {}", stderr.trim()));
         }
-        
+
         let hostname = String::from_utf8_lossy(&output.stdout).trim().to_string();
         if hostname.is_empty() {
             return Err("SSH connection successful but Docker returned empty hostname. Is the Docker daemon running on the remote host?".to_string());
         }
-        
+
         Ok(hostname)
     } else {
         // For TCP and other protocols, use DOCKER_HOST env var
@@ -335,15 +365,22 @@ pub async fn list_ssh_keys() -> Result<Vec<crate::models::SshKeyInfo>, String> {
     }
 
     let mut keys = Vec::new();
-    let entries = std::fs::read_dir(&ssh_dir).map_err(|e| format!("Failed to read ~/.ssh: {}", e))?;
+    let entries =
+        std::fs::read_dir(&ssh_dir).map_err(|e| format!("Failed to read ~/.ssh: {}", e))?;
 
     for entry in entries {
         let entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path();
 
         // Skip directories, .pub files, known_hosts, config, authorized_keys
-        if path.is_dir() { continue; }
-        let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+        if path.is_dir() {
+            continue;
+        }
+        let filename = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
         if filename.ends_with(".pub")
             || filename == "known_hosts"
             || filename == "known_hosts.old"
@@ -373,7 +410,12 @@ pub async fn list_ssh_keys() -> Result<Vec<crate::models::SshKeyInfo>, String> {
 }
 
 #[tauri::command]
-pub async fn configure_ssh_host(hostname: String, user: String, port: Option<u16>, identity_file: String) -> Result<(), String> {
+pub async fn configure_ssh_host(
+    hostname: String,
+    user: String,
+    port: Option<u16>,
+    identity_file: String,
+) -> Result<(), String> {
     let home = std::env::var("HOME").map_err(|_| "Could not find HOME directory".to_string())?;
     let ssh_dir = std::path::Path::new(&home).join(".ssh");
     let config_path = ssh_dir.join("config");
@@ -483,7 +525,10 @@ pub async fn remove_ssh_host_config(hostname: String) -> Result<(), String> {
             continue;
         }
         if skip {
-            if line.starts_with("Host ") || line.starts_with("# Docker NM -") || (line.trim().is_empty() && !new_config.is_empty()) {
+            if line.starts_with("Host ")
+                || line.starts_with("# Docker NM -")
+                || (line.trim().is_empty() && !new_config.is_empty())
+            {
                 if line.starts_with("Host ") || line.starts_with("# Docker NM -") {
                     skip = false;
                     new_config.push_str(line);
