@@ -29,10 +29,10 @@
         --radius: 0.75rem;
         --shimmer-base: hsl(210 10% 94.1%);
         --shimmer-hi: hsl(0 0% 100%);
-        --header-bg: hsl(0 0% 97%);
-        --card-bg: hsl(0 0% 99%);
+        --header-bg: rgba(255, 255, 255, 0.5);
+        --card-bg: rgba(255, 255, 255, 0.5);
         --item-active: hsl(210 10% 91%);
-        --footer-row: hsl(210 10% 92%);
+        --footer-row: hsl(210 10% 94.1%);
       }
 
       .dark {
@@ -48,10 +48,10 @@
         --sidebar-border: hsl(240 3.7% 15.9%);
         --shimmer-base: hsl(240 3.7% 15.9%);
         --shimmer-hi: hsl(240 4.8% 22%);
-        --header-bg: hsl(240 6% 8%);
-        --card-bg: hsl(240 6% 7%);
+        --header-bg: rgba(9, 9, 11, 0.5);
+        --card-bg: rgba(9, 9, 11, 0.5);
         --item-active: hsl(240 3.7% 19%);
-        --footer-row: hsl(240 3.7% 18%);
+        --footer-row: hsl(240 3.7% 15.9%);
       }
 
       * {
@@ -122,7 +122,7 @@
         width: 100%;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
         padding: 0 16px;
         gap: 8px;
         background-color: var(--header-bg);
@@ -458,12 +458,9 @@
       </div>
       <div class="skeleton-main">
         <div class="skeleton-header">
-          <span class="skeleton-header-title">Docker Native Manager</span>
-          <div style="display: flex; align-items: center; gap: 8px">
-            <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
-            <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
-            <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
-          </div>
+          <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
+          <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
+          <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
         </div>
         <div class="skeleton-content">
           <div class="skeleton-box h-8 w-48 mb-2"></div>

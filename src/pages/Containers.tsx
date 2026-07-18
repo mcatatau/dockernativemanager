@@ -23,6 +23,7 @@ import {
   deleteContainer,
   createContainer,
   getContainerLogs,
+  getContainerStats,
   Container,
   ContainerStats,
   execContainer,
@@ -254,7 +255,6 @@ const Containers = () => {
     if (selectedContainer && panelMode === "status") {
       const fetchStats = async () => {
         try {
-          const { getContainerStats } = await import("@/lib/docker");
           const stats = await getContainerStats(selectedContainer.id);
           setContainerStats(stats);
           setContainerStatsHistory((prev) => {
