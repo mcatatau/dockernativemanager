@@ -35,7 +35,6 @@ import {
   Waypoints,
   Settings2,
   Plus,
-  Github,
   ExternalLink,
   Download,
   Sparkles,
@@ -743,7 +742,7 @@ const Sidebar = () => {
                   onClick={() => openExternalLink("https://github.com/pedrofariasx/dockernativemanager")}
                 >
                   <div className="flex items-center gap-3">
-                    <Github className="w-4 h-4" />
+                    <ExternalLink className="w-4 h-4" />
                     <span className="text-sm font-bold">GitHub Repository</span>
                   </div>
                   <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
