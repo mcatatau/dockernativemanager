@@ -1,7 +1,10 @@
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 
-export function useDockerEvent(type: "container" | "image" | "volume" | "network" | "all", callback: (event?: any) => void) {
+export function useDockerEvent(
+  type: "container" | "image" | "volume" | "network" | "all",
+  callback: (event?: any) => void,
+) {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 

@@ -2,18 +2,20 @@
  * File: images.rs
  * Project: docker-native-manager
  * Created: 2026-03-17
- * 
+ *
  * Last Modified: Wed Apr 01 2026
  * Modified By: Pedro Farias
- * 
+ *
  */
 
-use bollard::image::{ListImagesOptions, RemoveImageOptions, CreateImageOptions, PruneImagesOptions};
-use futures_util::stream::StreamExt;
-use chrono::{TimeZone, Local};
-use tauri::{AppHandle, Emitter};
 use crate::models::ImageInfo;
 use crate::utils::get_docker;
+use bollard::image::{
+    CreateImageOptions, ListImagesOptions, PruneImagesOptions, RemoveImageOptions,
+};
+use chrono::{Local, TimeZone};
+use futures_util::stream::StreamExt;
+use tauri::{AppHandle, Emitter};
 
 #[tauri::command]
 pub async fn get_images() -> Result<Vec<ImageInfo>, String> {
@@ -35,17 +37,26 @@ pub async fn get_images() -> Result<Vec<ImageInfo>, String> {
                     // Check digests for more info
                     if let Some(digest) = img.repo_digests.first() {
                         let d_parts: Vec<&str> = digest.split('@').collect();
-                        (d_parts.first().unwrap_or(&"none").to_string(), "sha256".to_string())
+                        (
+                            d_parts.first().unwrap_or(&"none").to_string(),
+                            "sha256".to_string(),
+                        )
                     } else {
                         ("none".to_string(), "none".to_string())
                     }
                 } else {
                     let parts: Vec<&str> = tag.split(':').collect();
-                    (parts.first().unwrap_or(&"none").to_string(), parts.get(1).unwrap_or(&"none").to_string())
+                    (
+                        parts.first().unwrap_or(&"none").to_string(),
+                        parts.get(1).unwrap_or(&"none").to_string(),
+                    )
                 }
             } else if let Some(digest) = img.repo_digests.first() {
                 let d_parts: Vec<&str> = digest.split('@').collect();
-                (d_parts.first().unwrap_or(&"none").to_string(), "sha256".to_string())
+                (
+                    d_parts.first().unwrap_or(&"none").to_string(),
+                    "sha256".to_string(),
+                )
             } else {
                 ("none".to_string(), "none".to_string())
             };
@@ -56,7 +67,8 @@ pub async fn get_images() -> Result<Vec<ImageInfo>, String> {
                 tag,
                 size: format!("{:.2} MB", img.size as f64 / 1024.0 / 1024.0),
                 created: img.created.to_string(),
-                created_at: Local.timestamp_opt(img.created, 0)
+                created_at: Local
+                    .timestamp_opt(img.created, 0)
                     .single()
                     .map(|dt| dt.to_rfc3339())
                     .unwrap_or_else(|| "unknown".to_string()),
@@ -68,14 +80,17 @@ pub async fn get_images() -> Result<Vec<ImageInfo>, String> {
 #[tauri::command]
 pub async fn delete_image(id: String) -> Result<(), String> {
     let docker = get_docker()?;
-    docker.remove_image(&id, None::<RemoveImageOptions>, None).await.map_err(|e| e.to_string())?;
+    docker
+        .remove_image(&id, None::<RemoveImageOptions>, None)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 
 #[tauri::command]
 pub async fn pull_image(app_handle: AppHandle, image: String) -> Result<(), String> {
     let docker = get_docker()?;
-    
+
     let full_image = if image.contains(':') {
         image
     } else {
@@ -109,12 +124,19 @@ pub async fn pull_image(app_handle: AppHandle, image: String) -> Result<(), Stri
 #[tauri::command]
 pub async fn prune_images() -> Result<String, String> {
     let docker = get_docker()?;
-    let result = docker.prune_images(None::<PruneImagesOptions<String>>).await.map_err(|e| e.to_string())?;
-    
+    let result = docker
+        .prune_images(None::<PruneImagesOptions<String>>)
+        .await
+        .map_err(|e| e.to_string())?;
+
     let reclaimed = result.space_reclaimed.unwrap_or(0);
     let count = result.images_deleted.unwrap_or_default().len();
-    
-    Ok(format!("Deleted {} images, reclaimed {:.2} MB", count, reclaimed as f64 / 1024.0 / 1024.0))
+
+    Ok(format!(
+        "Deleted {} images, reclaimed {:.2} MB",
+        count,
+        reclaimed as f64 / 1024.0 / 1024.0
+    ))
 }
 
 #[tauri::command]

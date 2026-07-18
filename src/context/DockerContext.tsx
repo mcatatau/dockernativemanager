@@ -3,23 +3,23 @@
  * Project: docker-native-manager
  * Created: 2026-03-14
  * Author: Pedro Farias
- * 
+ *
  * Last Modified: Tue Mar 31 2026
  * Modified By: Pedro Farias
- * 
+ *
  * Copyright (c) 2026 Pedro Farias
  * License: MIT
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { listen } from '@tauri-apps/api/event';
-import { showSuccess, showError } from '@/utils/toast';
-import { 
-  getContainers, 
-  getStacks, 
-  getImages, 
-  getVolumes, 
-  getNetworks, 
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { showSuccess, showError } from "@/utils/toast";
+import {
+  getContainers,
+  getStacks,
+  getImages,
+  getVolumes,
+  getNetworks,
   getSystemInfo,
   pullImage,
   deployStack,
@@ -29,9 +29,9 @@ import {
   Image,
   Volume,
   Network,
-  SystemInfo
-} from '@/lib/docker';
-import { useDockerEvent } from '@/hooks/use-docker-events';
+  SystemInfo,
+} from "@/lib/docker";
+import { useDockerEvent } from "@/hooks/use-docker-events";
 
 export interface DockerEvent {
   time: Date;
@@ -76,8 +76,13 @@ interface DockerContextType {
   pullingImages: Record<string, { status: string; progress: number | null }>;
   pullImageBackground: (imageName: string) => Promise<void>;
   deployingStacks: Record<string, { status: string }>;
-  deployStackBackground: (name: string, composeContent: string, envContent: string | null, stackType?: string) => Promise<void>;
-  manageService: (action: 'start' | 'stop' | 'restart' | 'reconnect') => Promise<void>;
+  deployStackBackground: (
+    name: string,
+    composeContent: string,
+    envContent: string | null,
+    stackType?: string,
+  ) => Promise<void>;
+  manageService: (action: "start" | "stop" | "restart" | "reconnect") => Promise<void>;
 }
 
 const DockerContext = createContext<DockerContextType | undefined>(undefined);
@@ -109,14 +114,14 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const data = await getContainers();
       // Only update if data actually changed
-      setContainers(prev => {
+      setContainers((prev) => {
         const prevJson = JSON.stringify(prev);
         const newJson = JSON.stringify(data);
         if (prevJson === newJson) return prev;
         return data;
       });
     } finally {
-      setLoading(prev => ({ ...prev, containers: false }));
+      setLoading((prev) => ({ ...prev, containers: false }));
     }
   }, []);
 
@@ -124,14 +129,14 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const data = await getStacks();
       // Only update if data actually changed
-      setStacks(prev => {
+      setStacks((prev) => {
         const prevJson = JSON.stringify(prev);
         const newJson = JSON.stringify(data);
         if (prevJson === newJson) return prev;
         return data;
       });
     } finally {
-      setLoading(prev => ({ ...prev, stacks: false }));
+      setLoading((prev) => ({ ...prev, stacks: false }));
     }
   }, []);
 
@@ -139,14 +144,14 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const data = await getImages();
       // Only update if data actually changed
-      setImages(prev => {
+      setImages((prev) => {
         const prevJson = JSON.stringify(prev);
         const newJson = JSON.stringify(data);
         if (prevJson === newJson) return prev;
         return data;
       });
     } finally {
-      setLoading(prev => ({ ...prev, images: false }));
+      setLoading((prev) => ({ ...prev, images: false }));
     }
   }, []);
 
@@ -154,14 +159,14 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const data = await getVolumes();
       // Only update if data actually changed
-      setVolumes(prev => {
+      setVolumes((prev) => {
         const prevJson = JSON.stringify(prev);
         const newJson = JSON.stringify(data);
         if (prevJson === newJson) return prev;
         return data;
       });
     } finally {
-      setLoading(prev => ({ ...prev, volumes: false }));
+      setLoading((prev) => ({ ...prev, volumes: false }));
     }
   }, []);
 
@@ -169,14 +174,14 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const data = await getNetworks();
       // Only update if data actually changed
-      setNetworks(prev => {
+      setNetworks((prev) => {
         const prevJson = JSON.stringify(prev);
         const newJson = JSON.stringify(data);
         if (prevJson === newJson) return prev;
         return data;
       });
     } finally {
-      setLoading(prev => ({ ...prev, networks: false }));
+      setLoading((prev) => ({ ...prev, networks: false }));
     }
   }, []);
 
@@ -191,7 +196,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsConnected(false);
       setSystemInfo(null);
     } finally {
-      setLoading(prev => ({ ...prev, systemInfo: false }));
+      setLoading((prev) => ({ ...prev, systemInfo: false }));
     }
   }, []);
 
@@ -215,157 +220,176 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [refreshContainers, refreshStacks, refreshImages, refreshVolumes, refreshNetworks, refreshSystemInfo]);
 
-  const pullImageBackground = useCallback(async (imageName: string) => {
-    const fullImageName = imageName.includes(':') ? imageName : `${imageName}:latest`;
-    
-    // Check if already pulling
-    if (pullingImages[fullImageName]) return;
+  const pullImageBackground = useCallback(
+    async (imageName: string) => {
+      const fullImageName = imageName.includes(":") ? imageName : `${imageName}:latest`;
 
-    setPullingImages(prev => ({
-      ...prev,
-      [fullImageName]: { status: 'Starting...', progress: null }
-    }));
+      // Check if already pulling
+      if (pullingImages[fullImageName]) return;
 
-    let unlisten: (() => void) | undefined;
+      setPullingImages((prev) => ({
+        ...prev,
+        [fullImageName]: { status: "Starting...", progress: null },
+      }));
 
-    try {
-      unlisten = await listen<{ status?: string; progressDetail?: { current?: number; total?: number } }>(
-        `pull-progress-${fullImageName}`,
-        (event) => {
-          const { status, progressDetail } = event.payload;
-          setPullingImages(prev => ({
-            ...prev,
-            [fullImageName]: {
-              status: status || prev[fullImageName]?.status || 'Pulling...',
-              progress: (progressDetail?.current && progressDetail?.total) 
-                ? Math.round((progressDetail.current / progressDetail.total) * 100)
-                : prev[fullImageName]?.progress
-            }
-          }));
+      let unlisten: (() => void) | undefined;
+
+      try {
+        unlisten = await listen<{ status?: string; progressDetail?: { current?: number; total?: number } }>(
+          `pull-progress-${fullImageName}`,
+          (event) => {
+            const { status, progressDetail } = event.payload;
+            setPullingImages((prev) => ({
+              ...prev,
+              [fullImageName]: {
+                status: status || prev[fullImageName]?.status || "Pulling...",
+                progress:
+                  progressDetail?.current && progressDetail?.total
+                    ? Math.round((progressDetail.current / progressDetail.total) * 100)
+                    : prev[fullImageName]?.progress,
+              },
+            }));
+          },
+        );
+
+        await pullImage(imageName);
+        showSuccess(`Image ${imageName} pulled successfully`);
+        refreshImages();
+      } catch (err) {
+        showError(`Failed to pull image ${imageName}: ${err}`);
+      } finally {
+        if (unlisten) unlisten();
+        setPullingImages((prev) => {
+          const next = { ...prev };
+          delete next[fullImageName];
+          return next;
+        });
+      }
+    },
+    [pullingImages, refreshImages],
+  );
+
+  const deployStackBackground = useCallback(
+    async (name: string, composeContent: string, envContent: string | null, stackType: string = "Compose") => {
+      if (deployingStacks[name]) return;
+
+      setDeployingStacks((prev) => ({
+        ...prev,
+        [name]: { status: "Deploying..." },
+      }));
+
+      try {
+        await deployStack(name, composeContent, envContent, stackType);
+        showSuccess(`Stack ${name} deployed successfully`);
+        refreshStacks();
+      } catch (err) {
+        showError(`Failed to deploy stack ${name}: ${err}`);
+      } finally {
+        setDeployingStacks((prev) => {
+          const next = { ...prev };
+          delete next[name];
+          return next;
+        });
+      }
+    },
+    [deployingStacks, refreshStacks],
+  );
+
+  const manageService = useCallback(
+    async (action: "start" | "stop" | "restart" | "reconnect") => {
+      setIsManagingService(true);
+      setLoading((prev) => ({ ...prev, systemInfo: true }));
+      try {
+        const result = await manageDockerService(action);
+        if (action !== "reconnect") {
+          showSuccess(result);
         }
-      );
 
-      await pullImage(imageName);
-      showSuccess(`Image ${imageName} pulled successfully`);
-      refreshImages();
-    } catch (err) {
-      showError(`Failed to pull image ${imageName}: ${err}`);
-    } finally {
-      if (unlisten) unlisten();
-      setPullingImages(prev => {
-        const next = { ...prev };
-        delete next[fullImageName];
-        return next;
-      });
-    }
-  }, [pullingImages, refreshImages]);
-
-  const deployStackBackground = useCallback(async (name: string, composeContent: string, envContent: string | null, stackType: string = "Compose") => {
-    if (deployingStacks[name]) return;
-
-    setDeployingStacks(prev => ({
-      ...prev,
-      [name]: { status: 'Deploying...' }
-    }));
-
-    try {
-      await deployStack(name, composeContent, envContent, stackType);
-      showSuccess(`Stack ${name} deployed successfully`);
-      refreshStacks();
-    } catch (err) {
-      showError(`Failed to deploy stack ${name}: ${err}`);
-    } finally {
-      setDeployingStacks(prev => {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      });
-    }
-  }, [deployingStacks, refreshStacks]);
-
-  const manageService = useCallback(async (action: 'start' | 'stop' | 'restart' | 'reconnect') => {
-    setIsManagingService(true);
-    setLoading(prev => ({ ...prev, systemInfo: true }));
-    try {
-      const result = await manageDockerService(action);
-      if (action !== 'reconnect') {
-        showSuccess(result);
-      }
-      
-      if (action === 'stop') {
-        setIsConnected(false);
-        // Clear data immediately
-        setContainers([]);
-        setStacks([]);
-        setImages([]);
-        setVolumes([]);
-        setNetworks([]);
-        setSystemInfo(null);
-        setHostStats(null);
-        setHostStatsHistory([]);
-      } else {
-        // Only refresh if starting, restarting or reconnecting
-        // SSH tunnels can take several seconds to establish
-        const delay = action === 'reconnect' ? 2000 : 3000;
-        setTimeout(async () => {
-          try {
-            await refreshAll();
-          } catch {
-            // If first attempt fails (e.g., SSH tunnel still starting), retry after delay
-            if (action === 'reconnect') {
-              setTimeout(refreshAll, 3000);
+        if (action === "stop") {
+          setIsConnected(false);
+          // Clear data immediately
+          setContainers([]);
+          setStacks([]);
+          setImages([]);
+          setVolumes([]);
+          setNetworks([]);
+          setSystemInfo(null);
+          setHostStats(null);
+          setHostStatsHistory([]);
+        } else {
+          // Only refresh if starting, restarting or reconnecting
+          // SSH tunnels can take several seconds to establish
+          const delay = action === "reconnect" ? 2000 : 3000;
+          setTimeout(async () => {
+            try {
+              await refreshAll();
+            } catch {
+              // If first attempt fails (e.g., SSH tunnel still starting), retry after delay
+              if (action === "reconnect") {
+                setTimeout(refreshAll, 3000);
+              }
             }
-          }
-        }, delay);
+          }, delay);
+        }
+      } catch (err) {
+        showError(`Failed to ${action} Docker service: ${err}`);
+        setLoading((prev) => ({ ...prev, systemInfo: false }));
+      } finally {
+        setIsManagingService(false);
       }
-    } catch (err) {
-      showError(`Failed to ${action} Docker service: ${err}`);
-      setLoading(prev => ({ ...prev, systemInfo: false }));
-    } finally {
-      setIsManagingService(false);
-    }
-  }, [refreshAll]);
+    },
+    [refreshAll],
+  );
 
   useEffect(() => {
     // Initial load
     refreshAll();
   }, []); // Only once on mount
 
-  useDockerEvent('all', useCallback((event) => {
-    // Optimization: Don't refresh EVERYTHING for every event immediately.
-    // Maybe only refresh relevant parts based on event.Type
-    const type = event?.Type?.toLowerCase();
-    
-    if (type === 'container') {
-      refreshContainers();
-      refreshSystemInfo();
-    } else if (type === 'image') {
-      refreshImages();
-      refreshSystemInfo();
-    } else if (type === 'volume') {
-      refreshVolumes();
-      refreshSystemInfo();
-    } else if (type === 'network') {
-      refreshNetworks();
-    } else {
-      refreshAll();
-    }
+  useDockerEvent(
+    "all",
+    useCallback(
+      (event) => {
+        // Optimization: Don't refresh EVERYTHING for every event immediately.
+        // Maybe only refresh relevant parts based on event.Type
+        const type = event?.Type?.toLowerCase();
 
-    if (event) {
-      setEvents((prev) => {
-        const newEvents = [{
-          time: new Date(),
-          type: event.Type || "system",
-          action: event.Action || "unknown",
-          id: event.Actor?.ID || "",
-          from: event.From || event.from, // Handle different casing just in case
-          status: event.status || event.Status,
-          attributes: event.Actor?.Attributes || {}
-        }, ...prev];
-        return newEvents.slice(0, 20); // keep last 20
-      });
-    }
-  }, [refreshContainers, refreshImages, refreshVolumes, refreshNetworks, refreshSystemInfo, refreshAll]));
+        if (type === "container") {
+          refreshContainers();
+          refreshSystemInfo();
+        } else if (type === "image") {
+          refreshImages();
+          refreshSystemInfo();
+        } else if (type === "volume") {
+          refreshVolumes();
+          refreshSystemInfo();
+        } else if (type === "network") {
+          refreshNetworks();
+        } else {
+          refreshAll();
+        }
+
+        if (event) {
+          setEvents((prev) => {
+            const newEvents = [
+              {
+                time: new Date(),
+                type: event.Type || "system",
+                action: event.Action || "unknown",
+                id: event.Actor?.ID || "",
+                from: event.From || event.from, // Handle different casing just in case
+                status: event.status || event.Status,
+                attributes: event.Actor?.Attributes || {},
+              },
+              ...prev,
+            ];
+            return newEvents.slice(0, 20); // keep last 20
+          });
+        }
+      },
+      [refreshContainers, refreshImages, refreshVolumes, refreshNetworks, refreshSystemInfo, refreshAll],
+    ),
+  );
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -373,7 +397,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const setup = async () => {
       unlisten = await listen<HostStats>("host-stats", (event) => {
         setHostStats(event.payload);
-        setHostStatsHistory(prev => {
+        setHostStatsHistory((prev) => {
           const newHistory = [...prev, event.payload];
           if (newHistory.length > 30) return newHistory.slice(1);
           return newHistory;
@@ -393,8 +417,8 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const setup = async () => {
       unlisten = await listen<boolean>("docker-connection-status", (event) => {
         const newStatus = event.payload;
-        
-        setIsConnected(prev => {
+
+        setIsConnected((prev) => {
           if (prev === false && newStatus === true) {
             // Only refresh when transitioned from disconnected to connected
             refreshAll();
@@ -423,32 +447,34 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [refreshAll]);
 
   return (
-    <DockerContext.Provider value={{
-      containers,
-      stacks,
-      images,
-      volumes,
-      networks,
-      systemInfo,
-      events,
-      hostStats,
-      hostStatsHistory,
-      isConnected,
-      isManagingService,
-      loading,
-      refreshAll,
-      refreshContainers,
-      refreshStacks,
-      refreshImages,
-      refreshVolumes,
-      refreshNetworks,
-      refreshSystemInfo,
-      pullingImages,
-      pullImageBackground,
-      deployingStacks,
-      deployStackBackground,
-      manageService,
-    }}>
+    <DockerContext.Provider
+      value={{
+        containers,
+        stacks,
+        images,
+        volumes,
+        networks,
+        systemInfo,
+        events,
+        hostStats,
+        hostStatsHistory,
+        isConnected,
+        isManagingService,
+        loading,
+        refreshAll,
+        refreshContainers,
+        refreshStacks,
+        refreshImages,
+        refreshVolumes,
+        refreshNetworks,
+        refreshSystemInfo,
+        pullingImages,
+        pullImageBackground,
+        deployingStacks,
+        deployStackBackground,
+        manageService,
+      }}
+    >
       {children}
     </DockerContext.Provider>
   );
@@ -457,7 +483,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 export const useDocker = () => {
   const context = useContext(DockerContext);
   if (context === undefined) {
-    throw new Error('useDocker must be used within a DockerProvider');
+    throw new Error("useDocker must be used within a DockerProvider");
   }
   return context;
 };

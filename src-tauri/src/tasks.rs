@@ -2,19 +2,19 @@
  * File: tasks.rs
  * Project: docker-native-manager
  * Created: 2026-03-17
- * 
+ *
  * Last Modified: Wed Apr 01 2026
  * Modified By: Pedro Farias
- * 
+ *
  */
 
-use bollard::container::{ListContainersOptions, StatsOptions, MemoryStatsStats};
+use crate::models::{ContainerStats, HostStats};
+use crate::utils::{get_docker, IS_STOPPED_INTENTIONALLY};
+use bollard::container::{ListContainersOptions, MemoryStatsStats, StatsOptions};
 use bollard::system::EventsOptions;
 use futures_util::stream::StreamExt;
 use std::sync::atomic::Ordering;
 use tauri::{AppHandle, Emitter};
-use crate::models::{ContainerStats, HostStats};
-use crate::utils::{get_docker, IS_STOPPED_INTENTIONALLY};
 
 pub async fn listen_to_docker_events(app_handle: AppHandle) {
     // Immediate check on startup
@@ -91,10 +91,13 @@ pub async fn emit_container_stats(app_handle: AppHandle) {
             Err(_) => continue,
         };
 
-        let containers = match docker.list_containers(Some(ListContainersOptions::<String> {
-            all: false, // only running
-            ..Default::default()
-        })).await {
+        let containers = match docker
+            .list_containers(Some(ListContainersOptions::<String> {
+                all: false, // only running
+                ..Default::default()
+            }))
+            .await
+        {
             Ok(c) => c,
             Err(_) => continue,
         };
@@ -102,16 +105,21 @@ pub async fn emit_container_stats(app_handle: AppHandle) {
         for c in containers {
             if let Some(id) = c.id {
                 let id_clone = id.clone();
-                let mut stats_stream = docker.stats(&id_clone, Some(StatsOptions {
-                    stream: false,
-                    one_shot: false,
-                }));
+                let mut stats_stream = docker.stats(
+                    &id_clone,
+                    Some(StatsOptions {
+                        stream: false,
+                        one_shot: false,
+                    }),
+                );
 
                 if let Some(Ok(stats)) = stats_stream.next().await {
-                    let cpu_delta = stats.cpu_stats.cpu_usage.total_usage as f64 - stats.precpu_stats.cpu_usage.total_usage as f64;
-                    let system_delta = stats.cpu_stats.system_cpu_usage.unwrap_or(0) as f64 - stats.precpu_stats.system_cpu_usage.unwrap_or(0) as f64;
+                    let cpu_delta = stats.cpu_stats.cpu_usage.total_usage as f64
+                        - stats.precpu_stats.cpu_usage.total_usage as f64;
+                    let system_delta = stats.cpu_stats.system_cpu_usage.unwrap_or(0) as f64
+                        - stats.precpu_stats.system_cpu_usage.unwrap_or(0) as f64;
                     let mut cpu_percent = 0.0;
-                    
+
                     if system_delta > 0.0 && cpu_delta > 0.0 {
                         let num_cpus = stats.cpu_stats.online_cpus.unwrap_or(1) as f64;
                         cpu_percent = (cpu_delta / system_delta) * num_cpus * 100.0;
@@ -119,7 +127,7 @@ pub async fn emit_container_stats(app_handle: AppHandle) {
 
                     let memory_usage = stats.memory_stats.usage.unwrap_or(0);
                     let memory_limit = stats.memory_stats.limit.unwrap_or(0);
-                    
+
                     let mut actual_memory = memory_usage;
                     if let Some(stats_detail) = stats.memory_stats.stats {
                         match stats_detail {
@@ -171,10 +179,10 @@ pub async fn emit_container_stats(app_handle: AppHandle) {
 }
 
 pub async fn emit_host_stats(app_handle: AppHandle) {
-    use sysinfo::{System, Networks};
+    use sysinfo::{Networks, System};
     let mut sys = System::new_all();
     let mut networks = Networks::new_with_refreshed_list();
-    
+
     let mut last_disk_read: u64 = 0;
     let mut last_disk_write: u64 = 0;
     let mut last_net_rx: u64 = 0;
@@ -188,7 +196,7 @@ pub async fn emit_host_stats(app_handle: AppHandle) {
 
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-        
+
         if IS_STOPPED_INTENTIONALLY.load(Ordering::SeqCst) {
             continue;
         }
@@ -203,24 +211,48 @@ pub async fn emit_host_stats(app_handle: AppHandle) {
                     match docker.info().await {
                         Ok(info) => {
                             let mem_total = info.mem_total.unwrap_or(0) as u64;
-                            
+
                             // Try to get real stats via SSH
                             if let Some(remote_stats) = get_remote_host_stats() {
-                                let cpu_delta_idle = remote_stats.cpu_idle.saturating_sub(last_remote_cpu_idle);
-                                let cpu_delta_total = remote_stats.cpu_total.saturating_sub(last_remote_cpu_total);
-                                let cpu_usage = if cpu_delta_total > 0 && last_remote_cpu_total > 0 {
-                                    ((cpu_delta_total - cpu_delta_idle) as f32 / cpu_delta_total as f32) * 100.0
+                                let cpu_delta_idle =
+                                    remote_stats.cpu_idle.saturating_sub(last_remote_cpu_idle);
+                                let cpu_delta_total =
+                                    remote_stats.cpu_total.saturating_sub(last_remote_cpu_total);
+                                let cpu_usage = if cpu_delta_total > 0 && last_remote_cpu_total > 0
+                                {
+                                    ((cpu_delta_total - cpu_delta_idle) as f32
+                                        / cpu_delta_total as f32)
+                                        * 100.0
                                 } else {
                                     0.0
                                 };
-                                
+
                                 last_remote_cpu_idle = remote_stats.cpu_idle;
                                 last_remote_cpu_total = remote_stats.cpu_total;
 
-                                let disk_read = if last_remote_disk_read > 0 { remote_stats.disk_read.saturating_sub(last_remote_disk_read) / 2 } else { 0 };
-                                let disk_write = if last_remote_disk_write > 0 { remote_stats.disk_write.saturating_sub(last_remote_disk_write) / 2 } else { 0 };
-                                let net_rx = if last_remote_net_rx > 0 { remote_stats.net_rx.saturating_sub(last_remote_net_rx) / 2 } else { 0 };
-                                let net_tx = if last_remote_net_tx > 0 { remote_stats.net_tx.saturating_sub(last_remote_net_tx) / 2 } else { 0 };
+                                let disk_read = if last_remote_disk_read > 0 {
+                                    remote_stats.disk_read.saturating_sub(last_remote_disk_read) / 2
+                                } else {
+                                    0
+                                };
+                                let disk_write = if last_remote_disk_write > 0 {
+                                    remote_stats
+                                        .disk_write
+                                        .saturating_sub(last_remote_disk_write)
+                                        / 2
+                                } else {
+                                    0
+                                };
+                                let net_rx = if last_remote_net_rx > 0 {
+                                    remote_stats.net_rx.saturating_sub(last_remote_net_rx) / 2
+                                } else {
+                                    0
+                                };
+                                let net_tx = if last_remote_net_tx > 0 {
+                                    remote_stats.net_tx.saturating_sub(last_remote_net_tx) / 2
+                                } else {
+                                    0
+                                };
 
                                 last_remote_disk_read = remote_stats.disk_read;
                                 last_remote_disk_write = remote_stats.disk_write;
@@ -260,11 +292,11 @@ pub async fn emit_host_stats(app_handle: AppHandle) {
             // Local context - use sysinfo as before
             sys.refresh_all();
             networks.refresh(true);
-            
+
             let cpu_usage = sys.global_cpu_usage();
             let memory_used = sys.used_memory();
             let memory_total = sys.total_memory();
-            
+
             let mut current_read: u64 = 0;
             let mut current_write: u64 = 0;
             for process in sys.processes().values() {
@@ -316,9 +348,14 @@ struct RemoteHostStats {
 /// Check if the current Docker context is remote (SSH)
 fn is_remote_context() -> bool {
     let output = std::process::Command::new("docker")
-        .args(["context", "inspect", "--format", "{{.Endpoints.docker.Host}}"])
+        .args([
+            "context",
+            "inspect",
+            "--format",
+            "{{.Endpoints.docker.Host}}",
+        ])
         .output();
-    
+
     match output {
         Ok(out) if out.status.success() => {
             let host = String::from_utf8_lossy(&out.stdout).trim().to_string();
@@ -332,21 +369,28 @@ fn is_remote_context() -> bool {
 fn get_remote_host_stats() -> Option<RemoteHostStats> {
     // Get the SSH host from current docker context
     let output = std::process::Command::new("docker")
-        .args(["context", "inspect", "--format", "{{.Endpoints.docker.Host}}"])
+        .args([
+            "context",
+            "inspect",
+            "--format",
+            "{{.Endpoints.docker.Host}}",
+        ])
         .output()
         .ok()?;
-    
+
     let host = String::from_utf8_lossy(&output.stdout).trim().to_string();
     if !host.starts_with("ssh://") {
         return None;
     }
 
     let url_part = host.trim_start_matches("ssh://");
-    
+
     // Build SSH command to get /proc/stat and /proc/meminfo
     let mut cmd = std::process::Command::new("ssh");
-    cmd.arg("-o").arg("ConnectTimeout=5")
-       .arg("-o").arg("BatchMode=yes");
+    cmd.arg("-o")
+        .arg("ConnectTimeout=5")
+        .arg("-o")
+        .arg("BatchMode=yes");
 
     // Parse user@host[:port]
     if let Some(at_pos) = url_part.find('@') {
@@ -373,7 +417,7 @@ fn get_remote_host_stats() -> Option<RemoteHostStats> {
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    
+
     let mut cpu_total: u64 = 0;
     let mut cpu_idle: u64 = 0;
     let mut mem_total: u64 = 0;
@@ -382,15 +426,13 @@ fn get_remote_host_stats() -> Option<RemoteHostStats> {
     let mut disk_write: u64 = 0;
     let mut net_rx: u64 = 0;
     let mut net_tx: u64 = 0;
-    
+
     for line in stdout.lines() {
         if line.starts_with("cpu ") {
             // cpu  user nice system idle iowait irq softirq steal guest guest_nice
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() >= 5 {
-                let values: Vec<u64> = parts[1..].iter()
-                    .filter_map(|s| s.parse().ok())
-                    .collect();
+                let values: Vec<u64> = parts[1..].iter().filter_map(|s| s.parse().ok()).collect();
                 cpu_total = values.iter().sum();
                 cpu_idle = *values.get(3).unwrap_or(&0); // idle is the 4th value
             }
@@ -425,7 +467,7 @@ fn get_remote_host_stats() -> Option<RemoteHostStats> {
                              (name.starts_with("vd") && name.len() == 3) || // vda, vdb...
                              (name.starts_with("xvd") && name.len() == 4) || // xvda...
                              (name.starts_with("nvme") && !name.contains('p')); // nvme0n1...
-                
+
                 if is_disk {
                     disk_read += parts[5].parse::<u64>().unwrap_or(0) * 512;
                     disk_write += parts[9].parse::<u64>().unwrap_or(0) * 512;

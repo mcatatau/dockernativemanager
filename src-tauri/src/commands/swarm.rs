@@ -2,24 +2,30 @@
  * File: swarm.rs
  * Project: docker-native-manager
  * Created: 2026-03-19
- * 
+ *
  * Last Modified: Thu Mar 19 2026
  * Modified By: Pedro Farias
- * 
+ *
  */
 
-use bollard::service::ListServicesOptions;
-use bollard::models::LocalNodeState;
-use crate::models::{SwarmInfo, NodeInfo, ServiceInfo};
+use crate::models::{NodeInfo, ServiceInfo, SwarmInfo};
 use crate::utils::get_docker;
+use bollard::models::LocalNodeState;
+use bollard::service::ListServicesOptions;
 
 #[tauri::command]
 pub async fn get_swarm_info() -> Result<Option<SwarmInfo>, String> {
     let docker = get_docker()?;
-    let info = docker.info().await.map_err(|e: bollard::errors::Error| e.to_string())?;
+    let info = docker
+        .info()
+        .await
+        .map_err(|e: bollard::errors::Error| e.to_string())?;
 
     // Check if swarm is active
-    let swarm_state = info.swarm.as_ref().and_then(|s| s.local_node_state.as_ref());
+    let swarm_state = info
+        .swarm
+        .as_ref()
+        .and_then(|s| s.local_node_state.as_ref());
     if swarm_state != Some(&LocalNodeState::ACTIVE) {
         return Ok(None);
     }
@@ -106,9 +112,15 @@ pub async fn list_nodes() -> Result<Vec<NodeInfo>, String> {
     let mut nodes = Vec::new();
 
     for line in stdout.lines() {
-        if line.trim().is_empty() { continue; }
+        if line.trim().is_empty() {
+            continue;
+        }
         if let Ok(parsed) = serde_json::from_str::<DockerNodeLsOutput>(line) {
-            let role = if parsed.manager_status.is_empty() { "worker".to_string() } else { "manager".to_string() };
+            let role = if parsed.manager_status.is_empty() {
+                "worker".to_string()
+            } else {
+                "manager".to_string()
+            };
             nodes.push(NodeInfo {
                 id: parsed.id,
                 hostname: parsed.hostname,
@@ -127,64 +139,94 @@ pub async fn list_nodes() -> Result<Vec<NodeInfo>, String> {
 #[tauri::command]
 pub async fn list_services() -> Result<Vec<ServiceInfo>, String> {
     let docker = get_docker()?;
-    let services = docker.list_services(None::<ListServicesOptions<String>>).await.map_err(|e: bollard::errors::Error| e.to_string())?;
+    let services = docker
+        .list_services(None::<ListServicesOptions<String>>)
+        .await
+        .map_err(|e: bollard::errors::Error| e.to_string())?;
 
-    Ok(services.into_iter().map(|s| {
-        let id = s.id.unwrap_or_default();
-        let name = s.spec.as_ref().and_then(|spec| spec.name.clone()).unwrap_or_default();
-        let image = s.spec.as_ref()
-            .and_then(|spec| spec.task_template.as_ref())
-            .and_then(|tt| tt.container_spec.as_ref())
-            .and_then(|cs| cs.image.clone())
-            .unwrap_or_default();
-        
-        let stack = s.spec.as_ref()
-            .and_then(|spec| spec.labels.as_ref())
-            .and_then(|l| l.get("com.docker.stack.namespace").cloned())
-            .unwrap_or_default();
+    Ok(services
+        .into_iter()
+        .map(|s| {
+            let id = s.id.unwrap_or_default();
+            let name = s
+                .spec
+                .as_ref()
+                .and_then(|spec| spec.name.clone())
+                .unwrap_or_default();
+            let image = s
+                .spec
+                .as_ref()
+                .and_then(|spec| spec.task_template.as_ref())
+                .and_then(|tt| tt.container_spec.as_ref())
+                .and_then(|cs| cs.image.clone())
+                .unwrap_or_default();
 
-        let updated_at = s.updated_at.as_ref().map(|t| t.to_string()).unwrap_or_default();
+            let stack = s
+                .spec
+                .as_ref()
+                .and_then(|spec| spec.labels.as_ref())
+                .and_then(|l| l.get("com.docker.stack.namespace").cloned())
+                .unwrap_or_default();
 
-        // Bollard doesn't give replicas status in list_services, just the spec.
-        // To get running/total, we'd need to list tasks for each service, which is expensive here.
-        // For now, let's just show total replicas from spec if replicated.
-        let replicas = match s.spec.as_ref().and_then(|spec| spec.mode.as_ref()) {
-            Some(mode) => {
-                if let Some(r) = mode.replicated.as_ref().and_then(|rep| rep.replicas) {
-                    format!("{}/{}", r, r) // Placeholder until we count tasks
-                } else if mode.global.is_some() {
-                    "global".to_string()
-                } else {
-                    "unknown".to_string()
+            let updated_at = s
+                .updated_at
+                .as_ref()
+                .map(|t| t.to_string())
+                .unwrap_or_default();
+
+            // Bollard doesn't give replicas status in list_services, just the spec.
+            // To get running/total, we'd need to list tasks for each service, which is expensive here.
+            // For now, let's just show total replicas from spec if replicated.
+            let replicas = match s.spec.as_ref().and_then(|spec| spec.mode.as_ref()) {
+                Some(mode) => {
+                    if let Some(r) = mode.replicated.as_ref().and_then(|rep| rep.replicas) {
+                        format!("{}/{}", r, r) // Placeholder until we count tasks
+                    } else if mode.global.is_some() {
+                        "global".to_string()
+                    } else {
+                        "unknown".to_string()
+                    }
                 }
-            },
-            None => "unknown".to_string(),
-        };
+                None => "unknown".to_string(),
+            };
 
-        let ports = s.endpoint.as_ref().and_then(|e| e.ports.as_ref()).map(|ports| {
-            ports.iter().map(|p| {
-                let target = p.target_port.unwrap_or(0);
-                let published = p.published_port.unwrap_or(0);
-                format!("{}:{}", published, target)
-            }).collect::<Vec<String>>().join(", ")
-        }).unwrap_or_default();
+            let ports = s
+                .endpoint
+                .as_ref()
+                .and_then(|e| e.ports.as_ref())
+                .map(|ports| {
+                    ports
+                        .iter()
+                        .map(|p| {
+                            let target = p.target_port.unwrap_or(0);
+                            let published = p.published_port.unwrap_or(0);
+                            format!("{}:{}", published, target)
+                        })
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                })
+                .unwrap_or_default();
 
-        ServiceInfo {
-            id,
-            name,
-            image,
-            replicas,
-            ports,
-            updated_at,
-            stack,
-        }
-    }).collect())
+            ServiceInfo {
+                id,
+                name,
+                image,
+                replicas,
+                ports,
+                updated_at,
+                stack,
+            }
+        })
+        .collect())
 }
 
 #[tauri::command]
 pub async fn inspect_service(id: String) -> Result<String, String> {
     let docker = get_docker()?;
-    let service = docker.inspect_service(&id, None::<bollard::service::InspectServiceOptions>).await.map_err(|e: bollard::errors::Error| e.to_string())?;
+    let service = docker
+        .inspect_service(&id, None::<bollard::service::InspectServiceOptions>)
+        .await
+        .map_err(|e: bollard::errors::Error| e.to_string())?;
     serde_json::to_string_pretty(&service).map_err(|e: serde_json::Error| e.to_string())
 }
 
@@ -250,4 +292,3 @@ pub async fn leave_swarm(force: bool) -> Result<String, String> {
 
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
-

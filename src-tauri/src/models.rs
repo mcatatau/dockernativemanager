@@ -2,10 +2,10 @@
  * File: models.rs
  * Project: docker-native-manager
  * Created: 2026-03-17
- * 
+ *
  * Last Modified: Tue Mar 31 2026
  * Modified By: Pedro Farias
- * 
+ *
  */
 
 use serde::Serialize;
