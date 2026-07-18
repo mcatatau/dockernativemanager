@@ -1,3 +1,10 @@
+# [1.15.0-beta.4](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.3...v1.15.0-beta.4) (2026-07-18)
+
+
+### Features
+
+* tornar tiles do dashboard clicáveis e direcionar para a aba correta ([633227a](https://github.com/pedrofariasx/dockernativemanager/commit/633227ab3d19b0e11c84de7355a32ecf5013285d))
+
 # [1.15.0-beta.3](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.2...v1.15.0-beta.3) (2026-07-18)
 
 
