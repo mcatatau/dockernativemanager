@@ -25,9 +25,9 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -144,20 +144,20 @@ const Images = () => {
 
   const filtered = images.filter(img => {
     const matchesSearch = img.repository.toLowerCase().includes(search.toLowerCase()) ||
-                          img.tag.toLowerCase().includes(search.toLowerCase()) ||
-                          img.id.toLowerCase().includes(search.toLowerCase());
-    
+      img.tag.toLowerCase().includes(search.toLowerCase()) ||
+      img.id.toLowerCase().includes(search.toLowerCase());
+
     if (filterInUse) {
       const isInUse = containers.some(c => c.image.includes(img.repository) || c.image.includes(img.id));
       return matchesSearch && isInUse;
     }
-    
+
     return matchesSearch;
   }).sort((a, b) => {
     if (!sortConfig) return 0;
     const { key, direction } = sortConfig;
     let comparison = 0;
-    
+
     if (key === 'created_at') {
       comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     } else if (key === 'repository') {
@@ -166,7 +166,7 @@ const Images = () => {
       // Basic size comparison logic (could be improved)
       comparison = parseFloat(a.size) - parseFloat(b.size);
     }
-    
+
     return direction === 'asc' ? comparison : -comparison;
   });
 
@@ -182,7 +182,7 @@ const Images = () => {
       status: data.status,
       progress: data.progress
     };
-  }).filter(img => 
+  }).filter(img =>
     img.repository.toLowerCase().includes(search.toLowerCase()) ||
     img.tag.toLowerCase().includes(search.toLowerCase())
   );
@@ -211,10 +211,10 @@ const Images = () => {
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    
+
     const count = selectedIds.length;
     let successCount = 0;
-    
+
     setIsRefreshing(true);
     for (const id of selectedIds) {
       try {
@@ -225,7 +225,7 @@ const Images = () => {
       }
     }
     setIsRefreshing(false);
-    
+
     showSuccess(`${successCount}/${count} images deleted`);
     setSelectedIds([]);
     refreshImages();
@@ -336,17 +336,22 @@ const Images = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search images by name, tag or ID..." 
+            <Input
+              placeholder="Search images by name, tag or ID..."
               className="bg-card border-border text-foreground pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 h-11"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                  e.currentTarget.select();
+                }
+              }}
             />
           </div>
           <div className="flex items-center gap-2 bg-card border border-border rounded-md px-3 h-11 shrink-0">
-            <Checkbox 
-              id="filter-in-use" 
-              checked={filterInUse} 
+            <Checkbox
+              id="filter-in-use"
+              checked={filterInUse}
               onCheckedChange={(checked) => setFilterInUse(!!checked)}
               className="border-border data-[state=checked]:bg-blue-600"
             />
@@ -367,7 +372,7 @@ const Images = () => {
                     className="border-border data-[state=checked]:bg-blue-600"
                   />
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('repository')}
                 >
@@ -380,7 +385,7 @@ const Images = () => {
                 </TableHead>
                 <TableHead className="text-muted-foreground font-medium">Tag</TableHead>
                 <TableHead className="text-muted-foreground font-medium">Image ID</TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('size')}
                 >
@@ -391,7 +396,7 @@ const Images = () => {
                     )}
                   </div>
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => requestSort('created_at')}
                 >
@@ -480,10 +485,10 @@ const Images = () => {
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs font-mono">{img.id}</TableCell>
                       <TableCell className="text-muted-foreground text-xs">
-                      <div className="flex items-center gap-2">
-                        <HardDrive className="w-3 h-3 text-muted-foreground" />
-                        {img.size}
-                      </div>
+                        <div className="flex items-center gap-2">
+                          <HardDrive className="w-3 h-3 text-muted-foreground" />
+                          {img.size}
+                        </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {dayjs(img.created_at).fromNow()}
@@ -498,7 +503,7 @@ const Images = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-[160px] bg-card border-border">
                             <DropdownMenuLabel className="text-muted-foreground">Actions</DropdownMenuLabel>
-                             <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openInspect(img)}>
+                            <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openInspect(img)}>
                               <Eye className="mr-2 h-4 w-4 text-emerald-500" />
                               <span>Inspect</span>
                             </DropdownMenuItem>
@@ -568,7 +573,7 @@ const Images = () => {
               onChange={(e) => setPullImageUrl(e.target.value)}
               disabled={Object.keys(pullingImages).some(name => name === (pullImageUrl.includes(':') ? pullImageUrl : `${pullImageUrl}:latest`))}
             />
-            
+
             {Object.entries(pullingImages).map(([imageName, { status, progress }]) => (
               <div key={imageName} className="space-y-2 animate-in fade-in slide-in-from-top-1">
                 <div className="flex justify-between text-xs">
@@ -582,7 +587,7 @@ const Images = () => {
                 )}
               </div>
             ))}
-            
+
             {!Object.keys(pullingImages).length && (
               <p className="text-xs text-muted-foreground mt-2">
                 Enter the image name and tag to pull from Docker Hub.
@@ -593,9 +598,9 @@ const Images = () => {
             <Button variant="outline" onClick={() => setShowPullDialog(false)} disabled={Object.keys(pullingImages).length > 0}>
               Cancel
             </Button>
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white" 
-              onClick={handlePull} 
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handlePull}
               disabled={!pullImageUrl || Object.keys(pullingImages).some(name => name === (pullImageUrl.includes(':') ? pullImageUrl : `${pullImageUrl}:latest`))}
             >
               {Object.keys(pullingImages).some(name => name === (pullImageUrl.includes(':') ? pullImageUrl : `${pullImageUrl}:latest`)) ? "Pulling..." : "Pull Image"}
