@@ -1,3 +1,10 @@
+# [1.15.0-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.14.1-beta.1...v1.15.0-beta.1) (2026-07-18)
+
+
+### Features
+
+* migrate to TypeScript 7 and replace ESLint with oxlint ([418468f](https://github.com/pedrofariasx/dockernativemanager/commit/418468f839327ee12a620b300d68917562d0bf70))
+
 ## [1.14.1-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.14.0...v1.14.1-beta.1) (2026-07-18)
 
 
