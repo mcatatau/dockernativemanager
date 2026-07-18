@@ -1,3 +1,10 @@
+# [1.15.0-beta.2](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.1...v1.15.0-beta.2) (2026-07-18)
+
+
+### Bug Fixes
+
+* corrigir exibição de created e size na aba de volumes ([cc83d4b](https://github.com/pedrofariasx/dockernativemanager/commit/cc83d4b9da183579d60a9446077b990bb6d18bd7))
+
 # [1.15.0-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.14.1-beta.1...v1.15.0-beta.1) (2026-07-18)
 
 
