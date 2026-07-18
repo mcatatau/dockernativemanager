@@ -3,7 +3,7 @@
  * Project: docker-native-manager
  * Author: Pedro Farias
  * Created: 2026-04-15
- * 
+ *
  * Last Modified: Wed Apr 15 2026
  * Modified By: Pedro Farias
  */
@@ -12,7 +12,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Folder, File, ArrowLeft, Trash2, Loader2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -21,7 +21,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { showSuccess, showError } from "@/utils/toast";
 
@@ -34,32 +34,33 @@ interface FileEntry {
 
 interface VolumeFileBrowserProps {
   volumeName: string;
-  onClose: () => void;
 }
 
-export const VolumeFileBrowser = ({ volumeName, onClose }: VolumeFileBrowserProps) => {
+export const VolumeFileBrowser = ({ volumeName }: VolumeFileBrowserProps) => {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [currentPath, setCurrentPath] = useState("/");
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState<FileEntry | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchFiles = useCallback(async (path: string) => {
-    setIsLoading(true);
-    try {
-      const data: FileEntry[] = await invoke("list_volume_files", { 
-        volumeName, 
-        subPath: path 
-      });
-      setFiles(data);
-      setCurrentPath(path);
-    } catch (err) {
-      showError(`Error listing files: ${err}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [volumeName]);
+  const fetchFiles = useCallback(
+    async (path: string) => {
+      setIsLoading(true);
+      try {
+        const data: FileEntry[] = await invoke("list_volume_files", {
+          volumeName,
+          subPath: path,
+        });
+        setFiles(data);
+        setCurrentPath(path);
+      } catch (err) {
+        showError(`Error listing files: ${err}`);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [volumeName],
+  );
 
   useEffect(() => {
     fetchFiles("/");
@@ -70,7 +71,7 @@ export const VolumeFileBrowser = ({ volumeName, onClose }: VolumeFileBrowserProp
   };
 
   const handleGoBack = () => {
-    const parentPath = currentPath.split('/').filter(Boolean).slice(0, -1).join('/') || "/";
+    const parentPath = currentPath.split("/").filter(Boolean).slice(0, -1).join("/") || "/";
     fetchFiles(parentPath === "" ? "/" : `/${parentPath}`);
   };
 
@@ -78,7 +79,6 @@ export const VolumeFileBrowser = ({ volumeName, onClose }: VolumeFileBrowserProp
     try {
       await invoke("delete_volume_file", { volumeName, filePath: path });
       showSuccess("File deleted");
-      setFileToDelete(null);
       fetchFiles(currentPath);
     } catch (err) {
       showError(`Error deleting: ${err}`);
@@ -94,7 +94,7 @@ export const VolumeFileBrowser = ({ volumeName, onClose }: VolumeFileBrowserProp
       const buffer = await file.arrayBuffer();
       const bytes = Array.from(new Uint8Array(buffer));
       const targetPath = `${currentPath}/${file.name}`;
-      
+
       await invoke("upload_volume_file", { volumeName, targetPath, fileContent: bytes });
       showSuccess("File uploaded");
       fetchFiles(currentPath);
@@ -115,9 +115,7 @@ export const VolumeFileBrowser = ({ volumeName, onClose }: VolumeFileBrowserProp
               <ArrowLeft className="w-4 h-4" />
             </Button>
           )}
-          <span className="font-mono text-sm bg-muted px-2 py-1 rounded truncate">
-            {currentPath}
-          </span>
+          <span className="font-mono text-sm bg-muted px-2 py-1 rounded truncate">{currentPath}</span>
         </div>
         <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
           {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
@@ -135,11 +133,15 @@ export const VolumeFileBrowser = ({ volumeName, onClose }: VolumeFileBrowserProp
           <ul className="divide-y">
             {files.map((file) => (
               <li key={file.path} className="flex items-center justify-between p-2 hover:bg-muted/50">
-                <button 
+                <button
                   className="flex items-center gap-2 flex-1 text-sm text-left"
                   onClick={() => file.is_dir && handleNavigate(file.path)}
                 >
-                  {file.is_dir ? <Folder className="w-4 h-4 text-blue-500" /> : <File className="w-4 h-4 text-gray-500" />}
+                  {file.is_dir ? (
+                    <Folder className="w-4 h-4 text-blue-500" />
+                  ) : (
+                    <File className="w-4 h-4 text-gray-500" />
+                  )}
                   {file.name}
                 </button>
                 <AlertDialog>
@@ -152,12 +154,16 @@ export const VolumeFileBrowser = ({ volumeName, onClose }: VolumeFileBrowserProp
                     <AlertDialogHeader>
                       <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the {file.is_dir ? 'directory' : 'file'} "{file.name}".
+                        This action cannot be undone. This will permanently delete the{" "}
+                        {file.is_dir ? "directory" : "file"} "{file.name}".
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction className="bg-rose-600 hover:bg-rose-700" onClick={() => handleDelete(file.path)}>
+                      <AlertDialogAction
+                        className="bg-rose-600 hover:bg-rose-700"
+                        onClick={() => handleDelete(file.path)}
+                      >
                         Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>

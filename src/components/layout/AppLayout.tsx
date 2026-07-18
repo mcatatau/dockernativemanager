@@ -2,19 +2,18 @@
  * File: AppLayout.tsx
  * Project: docker-native-manager
  * Created: 2026-03-13
- * 
+ *
  * Last Modified: Thu Jul 17 2026
  * Modified By: Pedro Farias
- * 
+ *
  */
 
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "./Sidebar";
-import { X, Minus, Square, ShieldAlert } from "lucide-react";
+import { X, Minus, Square } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { useDocker } from "@/context/DockerContext";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 // Resize handle configuration
@@ -25,22 +24,69 @@ type ResizeDirection = "North" | "South" | "East" | "West" | "NorthEast" | "Nort
 
 const RESIZE_HANDLES: { direction: ResizeDirection; style: React.CSSProperties }[] = [
   // Edges
-  { direction: "North", style: { top: 0, left: RESIZE_CORNER_SIZE, right: RESIZE_CORNER_SIZE, height: RESIZE_EDGE_SIZE, cursor: "n-resize" } },
-  { direction: "South", style: { bottom: 0, left: RESIZE_CORNER_SIZE, right: RESIZE_CORNER_SIZE, height: RESIZE_EDGE_SIZE, cursor: "s-resize" } },
-  { direction: "West", style: { left: 0, top: RESIZE_CORNER_SIZE, bottom: RESIZE_CORNER_SIZE, width: RESIZE_EDGE_SIZE, cursor: "w-resize" } },
-  { direction: "East", style: { right: 0, top: RESIZE_CORNER_SIZE, bottom: RESIZE_CORNER_SIZE, width: RESIZE_EDGE_SIZE, cursor: "e-resize" } },
+  {
+    direction: "North",
+    style: {
+      top: 0,
+      left: RESIZE_CORNER_SIZE,
+      right: RESIZE_CORNER_SIZE,
+      height: RESIZE_EDGE_SIZE,
+      cursor: "n-resize",
+    },
+  },
+  {
+    direction: "South",
+    style: {
+      bottom: 0,
+      left: RESIZE_CORNER_SIZE,
+      right: RESIZE_CORNER_SIZE,
+      height: RESIZE_EDGE_SIZE,
+      cursor: "s-resize",
+    },
+  },
+  {
+    direction: "West",
+    style: {
+      left: 0,
+      top: RESIZE_CORNER_SIZE,
+      bottom: RESIZE_CORNER_SIZE,
+      width: RESIZE_EDGE_SIZE,
+      cursor: "w-resize",
+    },
+  },
+  {
+    direction: "East",
+    style: {
+      right: 0,
+      top: RESIZE_CORNER_SIZE,
+      bottom: RESIZE_CORNER_SIZE,
+      width: RESIZE_EDGE_SIZE,
+      cursor: "e-resize",
+    },
+  },
   // Corners
-  { direction: "NorthWest", style: { top: 0, left: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "nw-resize" } },
-  { direction: "NorthEast", style: { top: 0, right: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "ne-resize" } },
-  { direction: "SouthWest", style: { bottom: 0, left: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "sw-resize" } },
-  { direction: "SouthEast", style: { bottom: 0, right: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "se-resize" } },
+  {
+    direction: "NorthWest",
+    style: { top: 0, left: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "nw-resize" },
+  },
+  {
+    direction: "NorthEast",
+    style: { top: 0, right: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "ne-resize" },
+  },
+  {
+    direction: "SouthWest",
+    style: { bottom: 0, left: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "sw-resize" },
+  },
+  {
+    direction: "SouthEast",
+    style: { bottom: 0, right: 0, width: RESIZE_CORNER_SIZE, height: RESIZE_CORNER_SIZE, cursor: "se-resize" },
+  },
 ];
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
-  const { isConnected } = useDocker();
   const lastPointerRef = useRef(0);
 
   const handleResizeDrag = useCallback(async (direction: ResizeDirection, e: React.PointerEvent) => {
@@ -61,10 +107,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let unlisten: () => void;
-    
+
     const setupListener = async () => {
       const win = getCurrentWindow();
-      
+
       const updateMaximized = async () => {
         const maximized = await win.isMaximized();
         setIsMaximized(maximized);
@@ -82,7 +128,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       const unlistenResized = await win.onResized(async () => {
         await updateMaximized();
       });
-      
+
       unlisten = unlistenResized;
     };
 
@@ -98,18 +144,19 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       className="flex h-full w-full bg-background overflow-hidden transition-colors duration-300 relative"
     >
       {/* Programmatic resize handles for Wayland compatibility (KDE Plasma 6, etc.) */}
-      {!isMaximized && RESIZE_HANDLES.map(({ direction, style }) => (
-        <div
-          key={direction}
-          style={{
-            position: "fixed",
-            zIndex: 9999,
-            background: "transparent",
-            ...style,
-          }}
-          onPointerDown={(e) => handleResizeDrag(direction, e)}
-        />
-      ))}
+      {!isMaximized &&
+        RESIZE_HANDLES.map(({ direction, style }) => (
+          <div
+            key={direction}
+            style={{
+              position: "fixed",
+              zIndex: 9999,
+              background: "transparent",
+              ...style,
+            }}
+            onPointerDown={(e) => handleResizeDrag(direction, e)}
+          />
+        ))}
 
       <Sidebar />
       <main className="flex-1 min-w-0 flex flex-col overflow-hidden relative">
@@ -117,14 +164,14 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <div
           className="h-12 border-b border-border/50 bg-background/50 flex items-center justify-between px-4 select-none shrink-0 cursor-default backdrop-blur-md"
           onPointerDown={async (e) => {
-            if (e.button !== 0 || (e.target as HTMLElement).closest('button') !== null) return;
+            if (e.button !== 0 || (e.target as HTMLElement).closest("button") !== null) return;
 
             const now = Date.now();
             const isDouble = now - lastPointerRef.current < 300 && lastPointerRef.current !== 0;
             lastPointerRef.current = now;
 
             if (isDouble) {
-              await getCurrentWindow()[isMaximized ? 'unmaximize' : 'maximize']();
+              await getCurrentWindow()[isMaximized ? "unmaximize" : "maximize"]();
               return;
             }
 
@@ -143,18 +190,20 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               }
             };
             const onUp = () => {
-              document.removeEventListener('pointermove', onMove);
-              document.removeEventListener('pointerup', onUp);
+              document.removeEventListener("pointermove", onMove);
+              document.removeEventListener("pointerup", onUp);
             };
 
-            document.addEventListener('pointermove', onMove);
-            document.addEventListener('pointerup', onUp);
+            document.addEventListener("pointermove", onMove);
+            document.addEventListener("pointerup", onUp);
           }}
         >
           <div className="flex items-center gap-2 pointer-events-none">
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Docker Native Manager</span>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+              Docker Native Manager
+            </span>
           </div>
-          
+
           <div className="flex items-center gap-1">
             <button
               onMouseDown={(e) => e.stopPropagation()}

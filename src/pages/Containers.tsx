@@ -3,10 +3,10 @@
  * Project: docker-native-manager
  * Created: 2026-03-14
  * Author: Pedro Farias
- * 
+ *
  * Last Modified: Thu Mar 19 2026
  * Modified By: Pedro Farias
- * 
+ *
  * Copyright (c) 2026 Pedro Farias
  * License: MIT
  */
@@ -16,7 +16,7 @@
 import { useDocker } from "@/context/DockerContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { useDockerEvent } from "@/hooks/use-docker-events";
+
 import { cn } from "@/lib/utils";
 import {
   startContainer,
@@ -29,16 +29,9 @@ import {
   ContainerStats,
   execContainer,
   writeStdin,
-  inspectContainer
+  inspectContainer,
 } from "@/lib/docker";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -46,7 +39,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -63,7 +55,6 @@ import {
   Eye,
   ChevronUp,
   ChevronDown,
-  CheckSquare,
   MoreVertical,
   Copy,
   X,
@@ -79,54 +70,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showSuccess, showError } from "@/utils/toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line } from "recharts";
 import { memo } from "react";
 
 const formatBytes = (bytes: number) => {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) return "0 B";
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 const Containers = () => {
-  const {
-    containers,
-    loading,
-    refreshContainers
-  } = useDocker();
+  const { containers, loading, refreshContainers } = useDocker();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -159,7 +123,7 @@ const Containers = () => {
   // Key to force log re-fetch when options change
   const [logsRefreshKey, setLogsRefreshKey] = useState(0);
   const logScrollRef = useRef<HTMLDivElement>(null);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(null);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -180,50 +144,54 @@ const Containers = () => {
 
   const isInitialLoading = loading.containers && containers.length === 0;
 
-  const fetchLogs = useCallback(async (silent = false) => {
-    if (!selectedContainer) return;
+  const fetchLogs = useCallback(
+    async (silent = false) => {
+      if (!selectedContainer) return;
 
-    if (!silent) setLogs("Loading logs...");
-    let sinceTimestamp: number | null = null;
-    const now = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
+      if (!silent) setLogs("Loading logs...");
+      let sinceTimestamp: number | null = null;
+      const now = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
-    switch (logTimeFilter) {
-      case "lastDay":
-        sinceTimestamp = now - 24 * 60 * 60;
-        break;
-      case "last4Hours":
-        sinceTimestamp = now - 4 * 60 * 60;
-        break;
-      case "lastHour":
-        sinceTimestamp = now - 60 * 60;
-        break;
-      case "last10Minutes":
-        sinceTimestamp = now - 10 * 60;
-        break;
-      case "all":
-      default:
-        sinceTimestamp = null;
-        break;
-    }
+      switch (logTimeFilter) {
+        case "lastDay":
+          sinceTimestamp = now - 24 * 60 * 60;
+          break;
+        case "last4Hours":
+          sinceTimestamp = now - 4 * 60 * 60;
+          break;
+        case "lastHour":
+          sinceTimestamp = now - 60 * 60;
+          break;
+        case "last10Minutes":
+          sinceTimestamp = now - 10 * 60;
+          break;
+        case "all":
+        default:
+          sinceTimestamp = null;
+          break;
+      }
 
-    try {
-      const logData = await getContainerLogs(
-        selectedContainer.id,
-        showTimestamps,
-        logLineCount === 0 ? null : logLineCount,
-        sinceTimestamp
-      );
-      setLogs(logData || "");
-    } catch (err) {
-      setLogs(`Error loading logs: ${err}`);
-    }
-  }, [selectedContainer, showTimestamps, logLineCount, logTimeFilter]);
+      try {
+        const logData = await getContainerLogs(
+          selectedContainer.id,
+          showTimestamps,
+          logLineCount === 0 ? null : logLineCount,
+          sinceTimestamp,
+        );
+        setLogs(logData || "");
+      } catch (err) {
+        setLogs(`Error loading logs: ${err}`);
+      }
+    },
+    [selectedContainer, showTimestamps, logLineCount, logTimeFilter],
+  );
 
   const getVisibleLogs = useCallback(() => {
     if (!logSearchTerm) return logs;
-    return logs.split('\n')
-      .filter(line => line.toLowerCase().includes(logSearchTerm.toLowerCase()))
-      .join('\n');
+    return logs
+      .split("\n")
+      .filter((line) => line.toLowerCase().includes(logSearchTerm.toLowerCase()))
+      .join("\n");
   }, [logs, logSearchTerm]);
 
   const openLogs = useCallback((container: Container) => {
@@ -297,7 +265,7 @@ const Containers = () => {
           const { getContainerStats } = await import("@/lib/docker");
           const stats = await getContainerStats(selectedContainer.id);
           setContainerStats(stats);
-          setContainerStatsHistory(prev => {
+          setContainerStatsHistory((prev) => {
             const newHistory = [...prev, stats];
             if (newHistory.length > 30) return newHistory.slice(1);
             return newHistory;
@@ -328,7 +296,7 @@ const Containers = () => {
         Object.entries(config.HostConfig.PortBindings).forEach(([cPort, hostBindings]) => {
           const bindings = hostBindings as { HostPort: string }[] | null;
           if (bindings && bindings[0]) {
-            portsArr.push(`${bindings[0].HostPort}:${cPort.split('/')[0]}`);
+            portsArr.push(`${bindings[0].HostPort}:${cPort.split("/")[0]}`);
           }
         });
         setNewPorts(portsArr.join(", "));
@@ -347,9 +315,18 @@ const Containers = () => {
     if (!newImage) return;
     setIsCreating(true);
     try {
-      const ports = newPorts.split(",").map(p => p.trim()).filter(p => p);
-      const envs = newEnvs.split("\n").map(e => e.trim()).filter(e => e);
-      const volumes = newVolumes.split("\n").map(v => v.trim()).filter(v => v);
+      const ports = newPorts
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p);
+      const envs = newEnvs
+        .split("\n")
+        .map((e) => e.trim())
+        .filter((e) => e);
+      const volumes = newVolumes
+        .split("\n")
+        .map((v) => v.trim())
+        .filter((v) => v);
 
       await createContainer(newName, newImage, ports, envs, volumes);
       showSuccess(`Container ${newName || newImage} created`);
@@ -367,35 +344,37 @@ const Containers = () => {
     }
   };
 
-  const filtered = containers.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.image.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || c.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  }).sort((a, b) => {
-    if (!sortConfig) return 0;
-    const { key, direction } = sortConfig;
-    let comparison = 0;
+  const filtered = containers
+    .filter((c) => {
+      const matchesSearch =
+        c.name.toLowerCase().includes(search.toLowerCase()) || c.image.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (!sortConfig) return 0;
+      const { key, direction } = sortConfig;
+      let comparison = 0;
 
-    if (key === 'name') {
-      comparison = a.name.localeCompare(b.name);
-    } else if (key === 'status') {
-      comparison = a.status.localeCompare(b.status);
-    } else if (key === 'image') {
-      comparison = a.image.localeCompare(b.image);
-    } else if (key === 'ip_address') {
-      comparison = (a.ip_address || "").localeCompare(b.ip_address || "");
-    } else if (key === 'created') {
-      comparison = (a.created || 0) - (b.created || 0);
-    }
+      if (key === "name") {
+        comparison = a.name.localeCompare(b.name);
+      } else if (key === "status") {
+        comparison = a.status.localeCompare(b.status);
+      } else if (key === "image") {
+        comparison = a.image.localeCompare(b.image);
+      } else if (key === "ip_address") {
+        comparison = (a.ip_address || "").localeCompare(b.ip_address || "");
+      } else if (key === "created") {
+        comparison = (a.created || 0) - (b.created || 0);
+      }
 
-    return direction === 'asc' ? comparison : -comparison;
-  });
+      return direction === "asc" ? comparison : -comparison;
+    });
 
   const requestSort = (key: string) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
     }
     setSortConfig({ key, direction });
   };
@@ -404,14 +383,12 @@ const Containers = () => {
     if (selectedIds.length === filtered.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filtered.map(c => c.id));
+      setSelectedIds(filtered.map((c) => c.id));
     }
   };
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
   const handleBulkAction = async (action: (id: string) => Promise<unknown>, label: string) => {
@@ -501,7 +478,7 @@ const Containers = () => {
                     size="sm"
                     className="bg-purple-500/10 border-purple-500/20 text-purple-500 hover:bg-purple-500/20 rounded-full"
                     onClick={() => {
-                      const container = containers.find(c => c.id === selectedIds[0]);
+                      const container = containers.find((c) => c.id === selectedIds[0]);
                       if (container) handleDuplicate(container);
                     }}
                   >
@@ -539,11 +516,6 @@ const Containers = () => {
               className="bg-card border-border text-foreground pl-10 h-11 focus-visible:ring-0 focus-visible:ring-offset-0"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
-                  e.currentTarget.select();
-                }
-              }}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -577,58 +549,73 @@ const Containers = () => {
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('name')}
+                  onClick={() => requestSort("name")}
                 >
                   <div className="flex items-center gap-1">
                     Name
-                    {sortConfig?.key === 'name' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "name" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('status')}
+                  onClick={() => requestSort("status")}
                 >
                   <div className="flex items-center gap-1">
                     State
-                    {sortConfig?.key === 'status' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "status" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead className="text-muted-foreground font-medium">Stack</TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('image')}
+                  onClick={() => requestSort("image")}
                 >
                   <div className="flex items-center gap-1">
                     Image
-                    {sortConfig?.key === 'image' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "image" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('created')}
+                  onClick={() => requestSort("created")}
                 >
                   <div className="flex items-center gap-1">
                     Created
-                    {sortConfig?.key === 'created' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "created" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('ip_address')}
+                  onClick={() => requestSort("ip_address")}
                 >
                   <div className="flex items-center gap-1">
                     IP Address
-                    {sortConfig?.key === 'ip_address' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "ip_address" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead className="text-muted-foreground font-medium">Host</TableHead>
@@ -640,16 +627,36 @@ const Containers = () => {
               {isInitialLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i} className="border-border">
-                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-4" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-8 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-8 w-8 ml-auto" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : filtered.length > 0 ? (
@@ -678,20 +685,47 @@ const Containers = () => {
           </Table>
         </div>
 
-        <Sheet open={!!selectedContainer} onOpenChange={(open) => {
-          if (!open) {
-            setSelectedContainer(null);
-            setPanelMode(null);
-          }
-        }}>
-          <SheetContent side="right" className="w-[80%] sm:w-[80%] sm:max-w-none bg-background border-border text-foreground flex flex-col p-0 gap-0">
+        <Sheet
+          open={!!selectedContainer}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedContainer(null);
+              setPanelMode(null);
+            }
+          }}
+        >
+          <SheetContent
+            side="right"
+            className="w-[80%] sm:w-[80%] sm:max-w-none bg-background border-border text-foreground flex flex-col p-0 gap-0"
+          >
             <SheetHeader className="p-5 border-b border-border shrink-0">
               <SheetTitle className="text-foreground flex items-center gap-2">
-                {panelMode === "terminal" ? <CommandLine className="w-5 h-5 text-amber-500" /> : panelMode === "logs" ? <Terminal className="w-5 h-5 text-blue-500" /> : panelMode === "status" ? <Activity className="w-5 h-5 text-purple-500" /> : <Eye className="w-5 h-5 text-emerald-500" />}
-                {panelMode === "terminal" ? "Terminal" : panelMode === "logs" ? "Logs" : panelMode === "status" ? "Resource Status" : "Inspect"}: {selectedContainer?.name}
+                {panelMode === "terminal" ? (
+                  <CommandLine className="w-5 h-5 text-amber-500" />
+                ) : panelMode === "logs" ? (
+                  <Terminal className="w-5 h-5 text-blue-500" />
+                ) : panelMode === "status" ? (
+                  <Activity className="w-5 h-5 text-purple-500" />
+                ) : (
+                  <Eye className="w-5 h-5 text-emerald-500" />
+                )}
+                {panelMode === "terminal"
+                  ? "Terminal"
+                  : panelMode === "logs"
+                    ? "Logs"
+                    : panelMode === "status"
+                      ? "Resource Status"
+                      : "Inspect"}
+                : {selectedContainer?.name}
               </SheetTitle>
               <SheetDescription className="text-muted-foreground">
-                {panelMode === "terminal" ? `Interactive shell for ${selectedContainer?.image}` : panelMode === "logs" ? `Live container output from ${selectedContainer?.image}` : panelMode === "status" ? `Live resource usage for ${selectedContainer?.image}` : `Configuration details for ${selectedContainer?.id}`}
+                {panelMode === "terminal"
+                  ? `Interactive shell for ${selectedContainer?.image}`
+                  : panelMode === "logs"
+                    ? `Live container output from ${selectedContainer?.image}`
+                    : panelMode === "status"
+                      ? `Live resource usage for ${selectedContainer?.image}`
+                      : `Configuration details for ${selectedContainer?.id}`}
               </SheetDescription>
             </SheetHeader>
 
@@ -703,7 +737,10 @@ const Containers = () => {
                       {(["sh", "bash", "ash"] as const).map((s) => (
                         <button
                           key={s}
-                          onClick={() => { setTerminalShell(s); setTerminalKey((k) => k + 1); }}
+                          onClick={() => {
+                            setTerminalShell(s);
+                            setTerminalKey((k) => k + 1);
+                          }}
                           className={`px-3 py-1 text-xs rounded font-mono transition-colors ${terminalShell === s ? "bg-blue-600 text-white" : "text-muted-foreground hover:text-foreground"}`}
                         >
                           {s}
@@ -714,7 +751,9 @@ const Containers = () => {
                       placeholder="user (optional)"
                       value={terminalUser}
                       onChange={(e) => setTerminalUser(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") setTerminalKey((k) => k + 1); }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") setTerminalKey((k) => k + 1);
+                      }}
                       className="h-8 text-xs w-36 bg-muted border-border"
                     />
                     <Button
@@ -740,28 +779,22 @@ const Containers = () => {
                   {/* Log Controls */}
                   <div className="flex flex-wrap items-center gap-3 pb-3 border-b border-border mb-3">
                     <div className="flex items-center space-x-2">
-                      <Switch
-                        id="auto-refresh-logs"
-                        checked={autoRefreshLogs}
-                        onCheckedChange={setAutoRefreshLogs}
-                      />
-                      <Label htmlFor="auto-refresh-logs" className="text-xs">Auto-refresh</Label>
+                      <Switch id="auto-refresh-logs" checked={autoRefreshLogs} onCheckedChange={setAutoRefreshLogs} />
+                      <Label htmlFor="auto-refresh-logs" className="text-xs">
+                        Auto-refresh
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Switch
-                        id="wrap-lines"
-                        checked={wrapLines}
-                        onCheckedChange={setWrapLines}
-                      />
-                      <Label htmlFor="wrap-lines" className="text-xs">Wrap lines</Label>
+                      <Switch id="wrap-lines" checked={wrapLines} onCheckedChange={setWrapLines} />
+                      <Label htmlFor="wrap-lines" className="text-xs">
+                        Wrap lines
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Switch
-                        id="show-timestamps"
-                        checked={showTimestamps}
-                        onCheckedChange={setShowTimestamps}
-                      />
-                      <Label htmlFor="show-timestamps" className="text-xs">Timestamps</Label>
+                      <Switch id="show-timestamps" checked={showTimestamps} onCheckedChange={setShowTimestamps} />
+                      <Label htmlFor="show-timestamps" className="text-xs">
+                        Timestamps
+                      </Label>
                     </div>
 
                     <Select value={logTimeFilter} onValueChange={setLogTimeFilter}>
@@ -782,11 +815,6 @@ const Containers = () => {
                       className="h-8 w-[180px] text-xs bg-muted border-border"
                       value={logSearchTerm}
                       onChange={(e) => setLogSearchTerm(e.target.value)}
-                      onKeyDown={(e) => {
-                        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
-                          e.currentTarget.select();
-                        }
-                      }}
                     />
 
                     <Input
@@ -804,7 +832,7 @@ const Containers = () => {
                       variant="outline"
                       size="sm"
                       className="h-8 text-xs gap-1"
-                      onClick={() => setLogsRefreshKey(k => k + 1)}
+                      onClick={() => setLogsRefreshKey((k) => k + 1)}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
                     </Button>
@@ -819,7 +847,7 @@ const Containers = () => {
                           const visibleLogs = getVisibleLogs();
                           const filePath = await save({
                             defaultPath: `${selectedContainer.name}-logs.txt`,
-                            filters: [{ name: 'Text', extensions: ['txt'] }]
+                            filters: [{ name: "Text", extensions: ["txt"] }],
                           });
 
                           if (filePath) {
@@ -852,7 +880,7 @@ const Containers = () => {
                     ref={logScrollRef}
                     className={cn(
                       "bg-card rounded-lg p-4 font-mono text-xs overflow-auto border border-border h-full",
-                      wrapLines ? "whitespace-pre-wrap" : "whitespace-pre"
+                      wrapLines ? "whitespace-pre-wrap" : "whitespace-pre",
                     )}
                   >
                     {getVisibleLogs() || (logs === "Loading logs..." ? "Loading logs..." : "No logs available.")}
@@ -870,8 +898,8 @@ const Containers = () => {
                     subtext={containerStats ? "Current usage" : "Monitoring suspended"}
                     icon={<Cpu className="w-5 h-5 text-orange-500" />}
                     loading={!containerStats}
-                    chartData={containerStatsHistory.map(h => ({ val: h.cpu_percent }))}
-                    series={[{ key: 'val', color: '#f97316' }]}
+                    chartData={containerStatsHistory.map((h) => ({ val: h.cpu_percent }))}
+                    series={[{ key: "val", color: "#f97316" }]}
                   />
                   <StatCard
                     title="Memory"
@@ -879,24 +907,32 @@ const Containers = () => {
                     subtext={containerStats ? `of ${formatBytes(containerStats.memory_limit)}` : "Monitoring suspended"}
                     icon={<MemoryStick className="w-5 h-5 text-cyan-500" />}
                     loading={!containerStats}
-                    chartData={containerStatsHistory.map(h => ({ val: h.memory_usage }))}
-                    series={[{ key: 'val', color: '#06b6d4' }]}
+                    chartData={containerStatsHistory.map((h) => ({ val: h.memory_usage }))}
+                    series={[{ key: "val", color: "#06b6d4" }]}
                   />
                   <StatCard
                     title="Disk I/O"
-                    value={containerStats ? `${formatBytes(containerStats.disk_read + containerStats.disk_write)}/s` : "0 B/s"}
+                    value={
+                      containerStats
+                        ? `${formatBytes(containerStats.disk_read + containerStats.disk_write)}/s`
+                        : "0 B/s"
+                    }
                     subtext={
                       <div className="flex items-center gap-2">
-                        <span className="text-emerald-400">R: {containerStats ? formatBytes(containerStats.disk_read) : "0 B"}/s</span>
-                        <span className="text-rose-400">W: {containerStats ? formatBytes(containerStats.disk_write) : "0 B"}/s</span>
+                        <span className="text-emerald-400">
+                          R: {containerStats ? formatBytes(containerStats.disk_read) : "0 B"}/s
+                        </span>
+                        <span className="text-rose-400">
+                          W: {containerStats ? formatBytes(containerStats.disk_write) : "0 B"}/s
+                        </span>
                       </div>
                     }
                     icon={<HardDrive className="w-5 h-5 text-pink-500" />}
                     loading={!containerStats}
-                    chartData={containerStatsHistory.map(h => ({ read: h.disk_read, write: h.disk_write }))}
+                    chartData={containerStatsHistory.map((h) => ({ read: h.disk_read, write: h.disk_write }))}
                     series={[
-                      { key: 'read', color: '#10b981' },
-                      { key: 'write', color: '#f43f5e' }
+                      { key: "read", color: "#10b981" },
+                      { key: "write", color: "#f43f5e" },
                     ]}
                   />
                   <StatCard
@@ -904,16 +940,20 @@ const Containers = () => {
                     value={containerStats ? `${formatBytes(containerStats.net_rx + containerStats.net_tx)}/s` : "0 B/s"}
                     subtext={
                       <div className="flex items-center gap-2">
-                        <span className="text-blue-400">↓ {containerStats ? formatBytes(containerStats.net_rx) : "0 B"}/s</span>
-                        <span className="text-purple-400">↑ {containerStats ? formatBytes(containerStats.net_tx) : "0 B"}/s</span>
+                        <span className="text-blue-400">
+                          ↓ {containerStats ? formatBytes(containerStats.net_rx) : "0 B"}/s
+                        </span>
+                        <span className="text-purple-400">
+                          ↑ {containerStats ? formatBytes(containerStats.net_tx) : "0 B"}/s
+                        </span>
                       </div>
                     }
                     icon={<NetworkIcon className="w-5 h-5 text-indigo-500" />}
                     loading={!containerStats}
-                    chartData={containerStatsHistory.map(h => ({ down: h.net_rx, up: h.net_tx }))}
+                    chartData={containerStatsHistory.map((h) => ({ down: h.net_rx, up: h.net_tx }))}
                     series={[
-                      { key: 'down', color: '#3b82f6' },
-                      { key: 'up', color: '#a855f7' }
+                      { key: "down", color: "#3b82f6" },
+                      { key: "up", color: "#a855f7" },
                     ]}
                   />
                 </div>
@@ -968,7 +1008,7 @@ const Containers = () => {
                   placeholder="NODE_ENV=production&#10;API_KEY=secret"
                   className="bg-card border-border text-foreground min-h-[80px] focus-visible:ring-0 focus-visible:ring-offset-0"
                   value={newEnvs}
-                  onChange={(e) => setNewEnvs(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewEnvs(e.target.value)}
                   disabled={isCreating}
                 />
               </div>
@@ -979,7 +1019,7 @@ const Containers = () => {
                   placeholder="/path/on/host:/path/in/container"
                   className="bg-card border-border text-foreground min-h-[80px] focus-visible:ring-0 focus-visible:ring-offset-0"
                   value={newVolumes}
-                  onChange={(e) => setNewVolumes(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewVolumes(e.target.value)}
                   disabled={isCreating}
                 />
               </div>
@@ -988,7 +1028,11 @@ const Containers = () => {
               <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={isCreating}>
                 Cancel
               </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCreate} disabled={isCreating || !newImage}>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleCreate}
+                disabled={isCreating || !newImage}
+              >
                 {isCreating ? "Creating..." : "Create"}
               </Button>
             </DialogFooter>
@@ -1011,8 +1055,18 @@ interface ContainerRowProps {
   openStatus: (container: Container) => void;
 }
 
-const ContainerRow = ({ container, isSelected, onSelect, handleAction, handleDuplicate, openLogs, openTerminal, openInspect, openStatus }: ContainerRowProps) => {
-  const [stats, setStats] = useState<{
+const ContainerRow = ({
+  container,
+  isSelected,
+  onSelect,
+  handleAction,
+  handleDuplicate,
+  openLogs,
+  openTerminal,
+  openInspect,
+  openStatus,
+}: ContainerRowProps) => {
+  const [, setStats] = useState<{
     cpu_percent: number;
     memory_usage: number;
     memory_limit: number;
@@ -1026,7 +1080,7 @@ const ContainerRow = ({ container, isSelected, onSelect, handleAction, handleDup
           `container-stats-${container.id}`,
           (event) => {
             setStats(event.payload);
-          }
+          },
         );
       };
       setupStats();
@@ -1039,10 +1093,7 @@ const ContainerRow = ({ container, isSelected, onSelect, handleAction, handleDup
   }, [container.status, container.id]);
 
   return (
-    <TableRow className={cn(
-      "border-border hover:bg-muted transition-colors group",
-      isSelected && "bg-muted"
-    )}>
+    <TableRow className={cn("border-border hover:bg-muted transition-colors group", isSelected && "bg-muted")}>
       <TableCell>
         <Checkbox
           checked={isSelected}
@@ -1052,20 +1103,20 @@ const ContainerRow = ({ container, isSelected, onSelect, handleAction, handleDup
       </TableCell>
       <TableCell className="font-semibold text-foreground">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            {container.name}
-          </div>
+          <div className="flex items-center gap-2">{container.name}</div>
         </div>
       </TableCell>
       <TableCell>
-        <Badge className={cn(
-          "px-2 py-0.5 text-[10px] font-mono uppercase border font-semibold",
-          container.status === "running"
-            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-            : container.status === "paused"
-              ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-              : "bg-rose-500/10 text-rose-500 border-rose-500/20"
-        )}>
+        <Badge
+          className={cn(
+            "px-2 py-0.5 text-[10px] font-mono uppercase border font-semibold",
+            container.status === "running"
+              ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+              : container.status === "paused"
+                ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                : "bg-rose-500/10 text-rose-500 border-rose-500/20",
+          )}
+        >
           {container.status}
         </Badge>
       </TableCell>
@@ -1087,43 +1138,72 @@ const ContainerRow = ({ container, isSelected, onSelect, handleAction, handleDup
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[160px] bg-card border-border">
             {container.status === "running" ? (
-              <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => handleAction(stopContainer, container.id, container.name)}>
+              <DropdownMenuItem
+                className="hover:bg-muted focus:bg-muted cursor-pointer"
+                onClick={() => handleAction(stopContainer, container.id, container.name)}
+              >
                 <Square className="mr-2 h-4 w-4 text-amber-500" />
                 <span>Stop</span>
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => handleAction(startContainer, container.id, container.name)}>
+              <DropdownMenuItem
+                className="hover:bg-muted focus:bg-muted cursor-pointer"
+                onClick={() => handleAction(startContainer, container.id, container.name)}
+              >
                 <Play className="mr-2 h-4 w-4 text-emerald-500" />
                 <span>Start</span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => handleAction(restartContainer, container.id, container.name)}>
+            <DropdownMenuItem
+              className="hover:bg-muted focus:bg-muted cursor-pointer"
+              onClick={() => handleAction(restartContainer, container.id, container.name)}
+            >
               <RefreshCw className="mr-2 h-4 w-4 text-blue-400" />
               <span>Restart</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openStatus(container)} disabled={container.status !== "running"}>
+            <DropdownMenuItem
+              className="hover:bg-muted focus:bg-muted cursor-pointer"
+              onClick={() => openStatus(container)}
+              disabled={container.status !== "running"}
+            >
               <Activity className="mr-2 h-4 w-4 text-purple-500" />
               <span>Status</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openLogs(container)}>
+            <DropdownMenuItem
+              className="hover:bg-muted focus:bg-muted cursor-pointer"
+              onClick={() => openLogs(container)}
+            >
               <Terminal className="mr-2 h-4 w-4 text-blue-500" />
               <span>Logs</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openTerminal(container)} disabled={container.status !== "running"}>
+            <DropdownMenuItem
+              className="hover:bg-muted focus:bg-muted cursor-pointer"
+              onClick={() => openTerminal(container)}
+              disabled={container.status !== "running"}
+            >
               <CommandLine className="mr-2 h-4 w-4 text-amber-500" />
               <span>Terminal</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openInspect(container)}>
+            <DropdownMenuItem
+              className="hover:bg-muted focus:bg-muted cursor-pointer"
+              onClick={() => openInspect(container)}
+            >
               <Eye className="mr-2 h-4 w-4 text-emerald-500" />
               <span>Inspect</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => handleDuplicate(container)}>
+            <DropdownMenuItem
+              className="hover:bg-muted focus:bg-muted cursor-pointer"
+              onClick={() => handleDuplicate(container)}
+            >
               <Copy className="mr-2 h-4 w-4 text-blue-400" />
               <span>Duplicate/Edit</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAction(deleteContainer, container.id, container.name)} className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 hover:bg-rose-500/10 cursor-pointer">
+            <DropdownMenuItem
+              onClick={() => handleAction(deleteContainer, container.id, container.name)}
+              className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 hover:bg-rose-500/10 cursor-pointer"
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               <span>Delete</span>
             </DropdownMenuItem>
@@ -1142,17 +1222,9 @@ import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 
 const SHELLS = ["sh", "bash", "ash"] as const;
-type ShellType = typeof SHELLS[number];
+type ShellType = (typeof SHELLS)[number];
 
-const TerminalComponent = ({
-  containerId,
-  shell,
-  user,
-}: {
-  containerId: string;
-  shell: ShellType;
-  user: string;
-}) => {
+const TerminalComponent = ({ containerId, shell, user }: { containerId: string; shell: ShellType; user: string }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const { resolvedTheme } = useTheme();
@@ -1191,7 +1263,7 @@ const TerminalComponent = ({
 
     // Send keystrokes to backend stdin
     const dataDispose = term.onData((data) => {
-      writeStdin(containerId, data).catch(() => { });
+      writeStdin(containerId, data).catch(() => {});
     });
 
     let unlisten: (() => void) | undefined;
@@ -1241,20 +1313,14 @@ interface StatCardProps {
 const StatCard = memo(({ title, value, subtext, icon, loading, chartData, series }: StatCardProps) => (
   <Card className="bg-card border-border overflow-hidden relative group transition-colors hover:border-border/80">
     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10 bg-transparent">
-      <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
-        {title}
-      </CardTitle>
-      <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">
-        {icon}
-      </div>
+      <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em]">{title}</CardTitle>
+      <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">{icon}</div>
     </CardHeader>
     <CardContent className="relative z-10 bg-transparent">
       {loading ? (
         <Skeleton className="h-8 w-24 mb-1" />
       ) : (
-        <div className="text-2xl font-black text-foreground tracking-tight">
-          {value !== undefined ? value : "0"}
-        </div>
+        <div className="text-2xl font-black text-foreground tracking-tight">{value !== undefined ? value : "0"}</div>
       )}
       <div className="text-[11px] text-muted-foreground mt-1 font-medium">
         {loading ? <Skeleton className="h-3 w-32" /> : subtext}

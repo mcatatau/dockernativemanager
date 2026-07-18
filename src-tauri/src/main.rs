@@ -2,10 +2,10 @@
  * File: main.rs
  * Project: docker-native-manager
  * Created: 2026-03-13
- * 
+ *
  * Last Modified: Wed Apr 15 2026
  * Modified By: Pedro Farias
- * 
+ *
  * Copyright (c) 2026 Pedro Farias
  * License: MIT
  */
@@ -13,21 +13,24 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod models;
-mod utils;
 mod commands;
+mod models;
 mod tasks;
+mod utils;
 
-use std::collections::HashMap;
-use utils::TerminalSenders;
+#[cfg(test)]
+mod tests;
+
 use commands::containers::*;
 use commands::images::*;
-use commands::volumes::*;
 use commands::networks::*;
 use commands::stacks::*;
-use commands::system::*;
 use commands::swarm::*;
-use tasks::{listen_to_docker_events, emit_container_stats, emit_host_stats};
+use commands::system::*;
+use commands::volumes::*;
+use std::collections::HashMap;
+use tasks::{emit_container_stats, emit_host_stats, listen_to_docker_events};
+use utils::TerminalSenders;
 
 fn main() {
     tauri::Builder::default()
@@ -37,7 +40,7 @@ fn main() {
             let handle = app.handle().clone();
             let handle_stats = app.handle().clone();
             let handle_host_stats = app.handle().clone();
-            
+
             tauri::async_runtime::spawn(async move {
                 listen_to_docker_events(handle).await;
             });

@@ -3,10 +3,10 @@
  * Project: docker-native-manager
  * Created: 2026-03-13
  * Author: Pedro Farias
- * 
+ *
  * Last Modified: Wed Apr 15 2026
  * Modified By: Pedro Farias
- * 
+ *
  * Copyright (c) 2026 Pedro Farias
  * License: MIT
  */
@@ -15,18 +15,10 @@
 
 import { VolumeFileBrowser } from "@/components/volumes/VolumeFileBrowser";
 import { useDocker } from "@/context/DockerContext";
-import { useEffect, useState, useCallback } from "react";
-import { useDockerEvent } from "@/hooks/use-docker-events";
+import { useState } from "react";
 import { cn, formatBytes } from "@/lib/utils";
 import { deleteVolume, createVolume, Volume, inspectVolume, pruneVolumes, getVolumeContainers } from "@/lib/docker";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -50,11 +42,10 @@ import {
   MoreVertical,
   Eraser,
   Calendar,
-  Tag,
   Copy,
   ExternalLink,
   X,
-  FolderOpen
+  FolderOpen,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,37 +56,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Volumes = () => {
-  const {
-    volumes,
-    loading,
-    refreshVolumes
-  } = useDocker();
+  const { volumes, loading, refreshVolumes } = useDocker();
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [driverFilter, setDriverFilter] = useState<string>("all");
@@ -107,11 +77,14 @@ const Volumes = () => {
   const [newDriver, setNewDriver] = useState("local");
   const [isCreating, setIsCreating] = useState(false);
   const [isPruning, setIsPruning] = useState(false);
-  const [newLabels, setNewLabels] = useState<{ key: string, value: string }[]>([]);
+  const [newLabels, setNewLabels] = useState<{ key: string; value: string }[]>([]);
   const [selectedVolume, setSelectedVolume] = useState<Volume | null>(null);
   const [inspectData, setInspectData] = useState("");
   const [usingContainers, setUsingContainers] = useState<string[]>([]);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'name', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>({
+    key: "name",
+    direction: "asc",
+  });
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -136,7 +109,7 @@ const Volumes = () => {
     setIsCreating(true);
     try {
       const labels: Record<string, string> = {};
-      newLabels.forEach(l => {
+      newLabels.forEach((l) => {
         if (l.key.trim()) labels[l.key.trim()] = l.value.trim();
       });
 
@@ -173,10 +146,7 @@ const Volumes = () => {
     setInspectData("Loading inspection data...");
     setUsingContainers([]);
     try {
-      const [data, containers] = await Promise.all([
-        inspectVolume(volume.name),
-        getVolumeContainers(volume.name)
-      ]);
+      const [data, containers] = await Promise.all([inspectVolume(volume.name), getVolumeContainers(volume.name)]);
       setInspectData(data);
       setUsingContainers(containers);
     } catch (err) {
@@ -189,56 +159,56 @@ const Volumes = () => {
     setShowFilesSheet(true);
   };
 
-  const filtered = volumes.filter(v => {
-    const searchLower = search.toLowerCase();
-    const matchesSearch = v.name.toLowerCase().includes(searchLower) ||
-      v.driver.toLowerCase().includes(searchLower) ||
-      Object.entries(v.labels || {}).some(([k, val]) =>
-        k.toLowerCase().includes(searchLower) ||
-        val.toLowerCase().includes(searchLower)
-      );
-    const matchesDriver = driverFilter === "all" || v.driver === driverFilter;
-    return matchesSearch && matchesDriver;
-  }).sort((a, b) => {
-    if (!sortConfig) return 0;
-    const { key, direction } = sortConfig;
-    let comparison = 0;
+  const filtered = volumes
+    .filter((v) => {
+      const searchLower = search.toLowerCase();
+      const matchesSearch =
+        v.name.toLowerCase().includes(searchLower) ||
+        v.driver.toLowerCase().includes(searchLower) ||
+        Object.entries(v.labels || {}).some(
+          ([k, val]) => k.toLowerCase().includes(searchLower) || val.toLowerCase().includes(searchLower),
+        );
+      const matchesDriver = driverFilter === "all" || v.driver === driverFilter;
+      return matchesSearch && matchesDriver;
+    })
+    .sort((a, b) => {
+      if (!sortConfig) return 0;
+      const { key, direction } = sortConfig;
+      let comparison = 0;
 
-    if (key === 'name') {
-      comparison = a.name.localeCompare(b.name);
-    } else if (key === 'driver') {
-      comparison = a.driver.localeCompare(b.driver);
-    } else if (key === 'created_at') {
-      comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    } else if (key === 'size') {
-      comparison = a.size - b.size;
-    }
+      if (key === "name") {
+        comparison = a.name.localeCompare(b.name);
+      } else if (key === "driver") {
+        comparison = a.driver.localeCompare(b.driver);
+      } else if (key === "created_at") {
+        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      } else if (key === "size") {
+        comparison = a.size - b.size;
+      }
 
-    return direction === 'asc' ? comparison : -comparison;
-  });
+      return direction === "asc" ? comparison : -comparison;
+    });
 
   const requestSort = (key: string) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
     }
     setSortConfig({ key, direction });
   };
 
-  const drivers = Array.from(new Set(volumes.map(v => v.driver)));
+  const drivers = Array.from(new Set(volumes.map((v) => v.driver)));
 
   const toggleSelectAll = () => {
     if (selectedIds.length === filtered.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filtered.map(v => v.name));
+      setSelectedIds(filtered.map((v) => v.name));
     }
   };
 
   const toggleSelect = (name: string) => {
-    setSelectedIds(prev =>
-      prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
-    );
+    setSelectedIds((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
   };
 
   const handleBulkDelete = async () => {
@@ -329,11 +299,6 @@ const Volumes = () => {
               className="bg-card border-border text-foreground pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 h-11"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
-                  e.currentTarget.select();
-                }
-              }}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -346,8 +311,10 @@ const Volumes = () => {
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
                 <SelectItem value="all">All Drivers</SelectItem>
-                {drivers.map(d => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                {drivers.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -367,46 +334,58 @@ const Volumes = () => {
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('name')}
+                  onClick={() => requestSort("name")}
                 >
                   <div className="flex items-center gap-1">
                     Name
-                    {sortConfig?.key === 'name' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "name" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('driver')}
+                  onClick={() => requestSort("driver")}
                 >
                   <div className="flex items-center gap-1">
                     Driver
-                    {sortConfig?.key === 'driver' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "driver" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('created_at')}
+                  onClick={() => requestSort("created_at")}
                 >
                   <div className="flex items-center gap-1">
                     Created
-                    {sortConfig?.key === 'created_at' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "created_at" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead
                   className="text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => requestSort('size')}
+                  onClick={() => requestSort("size")}
                 >
                   <div className="flex items-center gap-1">
                     Size
-                    {sortConfig?.key === 'size' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                    )}
+                    {sortConfig?.key === "size" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      ))}
                   </div>
                 </TableHead>
                 <TableHead className="text-muted-foreground font-medium">Mountpoint</TableHead>
@@ -417,14 +396,30 @@ const Volumes = () => {
               {isInitialLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i} className="border-border">
-                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-64" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-4" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-64" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-8 w-8 ml-auto" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : filtered.length > 0 ? (
@@ -433,7 +428,7 @@ const Volumes = () => {
                     key={v.name}
                     className={cn(
                       "border-border hover:bg-muted transition-colors",
-                      selectedIds.includes(v.name) && "bg-muted"
+                      selectedIds.includes(v.name) && "bg-muted",
                     )}
                   >
                     <TableCell>
@@ -466,7 +461,6 @@ const Volumes = () => {
                             )}
                           </div>
                         )} */}
-
                       </div>
                     </TableCell>
                     <TableCell>
@@ -505,11 +499,17 @@ const Volumes = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-[160px] bg-card border-border">
                           <DropdownMenuLabel className="text-muted-foreground">Actions</DropdownMenuLabel>
-                          <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openInspect(v)}>
+                          <DropdownMenuItem
+                            className="hover:bg-muted focus:bg-muted cursor-pointer"
+                            onClick={() => openInspect(v)}
+                          >
                             <Eye className="mr-2 h-4 w-4 text-emerald-500" />
                             <span>Inspect</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="hover:bg-muted focus:bg-muted cursor-pointer" onClick={() => openFiles(v)}>
+                          <DropdownMenuItem
+                            className="hover:bg-muted focus:bg-muted cursor-pointer"
+                            onClick={() => openFiles(v)}
+                          >
                             <FolderOpen className="mr-2 h-4 w-4 text-blue-500" />
                             <span>Browse Files</span>
                           </DropdownMenuItem>
@@ -534,7 +534,10 @@ const Volumes = () => {
                             <span>Copy Mountpoint</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-border" />
-                          <DropdownMenuItem onClick={() => handleDelete(v.name)} className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 hover:bg-rose-500/10 cursor-pointer">
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(v.name)}
+                            className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 hover:bg-rose-500/10 cursor-pointer"
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             <span>Delete</span>
                           </DropdownMenuItem>
@@ -556,10 +559,16 @@ const Volumes = () => {
       </div>
 
       {/* Inspection & Files Sheets */}
-      <Sheet open={!!selectedVolume && !showFilesSheet} onOpenChange={(open) => {
-        if (!open) setSelectedVolume(null);
-      }}>
-        <SheetContent side="right" className="w-[80%] sm:w-[80%] sm:max-w-none bg-background border-border text-foreground flex flex-col p-0 gap-0">
+      <Sheet
+        open={!!selectedVolume && !showFilesSheet}
+        onOpenChange={(open) => {
+          if (!open) setSelectedVolume(null);
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-[80%] sm:w-[80%] sm:max-w-none bg-background border-border text-foreground flex flex-col p-0 gap-0"
+        >
           <SheetHeader className="p-5 border-b border-border shrink-0 text-left">
             <SheetTitle className="text-foreground flex items-center gap-2">
               <Eye className="w-5 h-5 text-emerald-500" />
@@ -576,7 +585,9 @@ const Volumes = () => {
                 <div className="space-y-3">
                   <div className="flex flex-col gap-1">
                     <span className="text-xs text-muted-foreground">Driver</span>
-                    <span className="text-sm font-mono bg-muted px-2 py-1 rounded border border-border w-fit">{selectedVolume?.driver}</span>
+                    <span className="text-sm font-mono bg-muted px-2 py-1 rounded border border-border w-fit">
+                      {selectedVolume?.driver}
+                    </span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-xs text-muted-foreground">Created At</span>
@@ -586,7 +597,9 @@ const Volumes = () => {
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-xs text-muted-foreground">Mountpoint</span>
-                    <span className="text-xs font-mono bg-muted px-2 py-1 rounded border border-border break-all">{selectedVolume?.mountpoint}</span>
+                    <span className="text-xs font-mono bg-muted px-2 py-1 rounded border border-border break-all">
+                      {selectedVolume?.mountpoint}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -596,11 +609,16 @@ const Volumes = () => {
                   <div className="grid grid-cols-1 gap-2">
                     {Object.entries(selectedVolume.labels).map(([key, value]) => (
                       <div key={key} className="flex items-center gap-2 text-xs">
-                        <Badge variant="outline" className="bg-blue-500/5 text-blue-400 border-blue-500/20 px-2 py-0.5 font-mono">
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-500/5 text-blue-400 border-blue-500/20 px-2 py-0.5 font-mono"
+                        >
                           {key}
                         </Badge>
                         <span className="text-muted-foreground">=</span>
-                        <span className="text-foreground font-mono break-all bg-card border border-border px-2 py-0.5 rounded">{value}</span>
+                        <span className="text-foreground font-mono break-all bg-card border border-border px-2 py-0.5 rounded">
+                          {value}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -621,7 +639,9 @@ const Volumes = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic text-emerald-500/60">This volume is currently not in use by any container.</p>
+                <p className="text-xs text-muted-foreground italic text-emerald-500/60">
+                  This volume is currently not in use by any container.
+                </p>
               )}
             </div>
 
@@ -635,10 +655,13 @@ const Volumes = () => {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={!!selectedVolume && showFilesSheet} onOpenChange={(open) => {
-        setShowFilesSheet(open);
-        if (!open) setSelectedVolume(null);
-      }}>
+      <Sheet
+        open={!!selectedVolume && showFilesSheet}
+        onOpenChange={(open) => {
+          setShowFilesSheet(open);
+          if (!open) setSelectedVolume(null);
+        }}
+      >
         <SheetContent side="right" className="w-[800px] sm:max-w-[800px] bg-background border-border text-foreground">
           <SheetHeader>
             <SheetTitle>Files in {selectedVolume?.name}</SheetTitle>
@@ -646,7 +669,7 @@ const Volumes = () => {
           </SheetHeader>
           {selectedVolume && (
             <div className="mt-4 h-[calc(100vh-120px)]">
-              <VolumeFileBrowser volumeName={selectedVolume.name} onClose={() => setShowFilesSheet(false)} />
+              <VolumeFileBrowser volumeName={selectedVolume.name} />
             </div>
           )}
         </SheetContent>
@@ -679,9 +702,13 @@ const Volumes = () => {
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
                   <SelectItem value="local">local</SelectItem>
-                  {drivers.filter(d => d !== "local").map(d => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
+                  {drivers
+                    .filter((d) => d !== "local")
+                    .map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -743,7 +770,11 @@ const Volumes = () => {
             <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={isCreating}>
               Cancel
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCreate} disabled={isCreating || !newName}>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleCreate}
+              disabled={isCreating || !newName}
+            >
               {isCreating ? "Creating..." : "Create"}
             </Button>
           </DialogFooter>
@@ -758,7 +789,8 @@ const Volumes = () => {
               Prune Volumes
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              This will remove all unused local volumes. Unused volumes are those that are not referenced by any containers. This action cannot be undone.
+              This will remove all unused local volumes. Unused volumes are those that are not referenced by any
+              containers. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
