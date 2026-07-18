@@ -750,7 +750,6 @@ const Sidebar = () => {
                     <ExternalLink className="w-4 h-4" />
                     <span className="text-sm font-bold">GitHub Repository</span>
                   </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
 
                 {latestVersion && appVersion && compareVersions(latestVersion, appVersion) > 0 ? (
