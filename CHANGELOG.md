@@ -1,3 +1,10 @@
+# [1.15.0-beta.6](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.5...v1.15.0-beta.6) (2026-07-18)
+
+
+### Bug Fixes
+
+* corrigir build da tela de carregamento removendo color-mix/backdrop-filter ([232b75c](https://github.com/pedrofariasx/dockernativemanager/commit/232b75c6a782046afa427c739e40fa5e7074903c))
+
 # [1.15.0-beta.5](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.4...v1.15.0-beta.5) (2026-07-18)
 
 
