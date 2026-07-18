@@ -15,7 +15,7 @@ import { useMemo, memo } from "react";
 import { useDocker } from "@/context/DockerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn, formatBytes } from "@/lib/utils";
+import { formatBytes } from "@/lib/utils";
 import {
   Box,
   Layers,

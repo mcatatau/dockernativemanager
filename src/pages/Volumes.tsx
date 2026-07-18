@@ -620,7 +620,7 @@ const Volumes = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic text-emerald-500/60">
+                <p className="text-xs italic text-emerald-500/60">
                   This volume is currently not in use by any container.
                 </p>
               )}

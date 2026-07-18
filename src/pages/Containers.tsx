@@ -205,7 +205,7 @@ const Containers = () => {
 
   // Effect for auto-refreshing logs
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: ReturnType<typeof setInterval>;
     if (autoRefreshLogs && selectedContainer && panelMode === "logs") {
       intervalId = setInterval(() => fetchLogs(true), 3000); // Refresh every 3 seconds silently
     }
@@ -250,7 +250,7 @@ const Containers = () => {
   };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (selectedContainer && panelMode === "status") {
       const fetchStats = async () => {
         try {

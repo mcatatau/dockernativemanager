@@ -27,6 +27,7 @@ import {
   stopStack,
   restartStack,
   scaleStackService,
+  Container,
 } from "@/lib/docker";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -522,7 +523,7 @@ const Stacks = () => {
   }, [showLogsSheet, logsStack, logsRefreshKey, fetchLogs]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: ReturnType<typeof setInterval>;
     if (autoRefreshLogs && showLogsSheet && logsStack) {
       intervalId = setInterval(() => fetchLogs(logsStack.name, true), 3000);
     }

@@ -120,7 +120,7 @@ const Sidebar = () => {
   const [showSshConfig, setShowSshConfig] = useState(false);
 
   const handleDownload = async (asset: { id: number; name: string; browser_download_url: string }) => {
-    setDownloadingAsset(asset.id);
+    setDownloadingAsset(String(asset.id));
     try {
       const path = await downloadUpdate(asset.browser_download_url, asset.name);
       showSuccess(`File downloaded to: ${path}`);
@@ -320,7 +320,7 @@ const Sidebar = () => {
     setIsPruning(true);
     setShowPruneDialog(false);
     try {
-      const result = await dockerSystemPrune();
+      await dockerSystemPrune();
       showSuccess("System pruned successfully");
     } catch (err) {
       showError(`Error pruning system: ${err}`);
@@ -920,14 +920,14 @@ const Sidebar = () => {
                       size="sm"
                       className={cn(
                         "h-8 px-3 gap-2 border-sidebar-border hover:border-blue-500/50 hover:bg-blue-500/5 transition-all",
-                        downloadingAsset === asset.id &&
+                        downloadingAsset === String(asset.id) &&
                           "border-blue-500 bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
                       )}
-                      onClick={() => downloadingAsset !== asset.id && handleDownload(asset)}
-                      disabled={downloadingAsset !== null && downloadingAsset !== asset.id}
+                      onClick={() => downloadingAsset !== String(asset.id) && handleDownload(asset)}
+                      disabled={downloadingAsset !== null && downloadingAsset !== String(asset.id)}
                       title={asset.name}
                     >
-                      {downloadingAsset === asset.id ? (
+                      {downloadingAsset === String(asset.id) ? (
                         <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
                       ) : (
                         <Download className="w-3 h-3 text-blue-500" />
@@ -946,7 +946,7 @@ const Sidebar = () => {
             </Button>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-bold"
-              onClick={() => openExternalLink(latestRelease?.html_url)}
+              onClick={() => latestRelease?.html_url && openExternalLink(latestRelease.html_url)}
             >
               View on GitHub
               <ExternalLink className="w-4 h-4" />
