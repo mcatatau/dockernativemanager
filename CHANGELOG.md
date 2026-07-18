@@ -1,3 +1,10 @@
+## [1.14.1-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.14.0...v1.14.1-beta.1) (2026-07-18)
+
+
+### Bug Fixes
+
+* corrigir todos os warnings do lint (28 warnings) ([aeb54df](https://github.com/pedrofariasx/dockernativemanager/commit/aeb54dfc5672fb7e60e022132919375ee561cf3f))
+
 # [1.14.0](https://github.com/pedrofariasx/dockernativemanager/compare/v1.13.1...v1.14.0) (2026-07-18)
 
 
