@@ -29,6 +29,10 @@
         --radius: 0.75rem;
         --shimmer-base: hsl(210 10% 94.1%);
         --shimmer-hi: hsl(0 0% 100%);
+        --header-bg: hsl(0 0% 97%);
+        --card-bg: hsl(0 0% 99%);
+        --item-active: hsl(210 10% 91%);
+        --footer-row: hsl(210 10% 92%);
       }
 
       .dark {
@@ -44,6 +48,10 @@
         --sidebar-border: hsl(240 3.7% 15.9%);
         --shimmer-base: hsl(240 3.7% 15.9%);
         --shimmer-hi: hsl(240 4.8% 22%);
+        --header-bg: hsl(240 6% 8%);
+        --card-bg: hsl(240 6% 7%);
+        --item-active: hsl(240 3.7% 19%);
+        --footer-row: hsl(240 3.7% 18%);
       }
 
       * {
@@ -117,8 +125,7 @@
         justify-content: space-between;
         padding: 0 16px;
         gap: 8px;
-        background-color: color-mix(in srgb, var(--background) 60%, transparent);
-        backdrop-filter: blur(12px);
+        background-color: var(--header-bg);
       }
 
       .skeleton-header-title {
@@ -149,12 +156,7 @@
         position: absolute;
         inset: 0;
         transform: translateX(-100%);
-        background: linear-gradient(
-          90deg,
-          transparent 0%,
-          color-mix(in srgb, var(--shimmer-hi) 70%, transparent) 50%,
-          transparent 100%
-        );
+        background: linear-gradient(90deg, transparent 0%, var(--shimmer-hi) 50%, transparent 100%);
         animation: shimmer 1.6s infinite;
       }
 
@@ -178,7 +180,6 @@
         border-radius: 12px;
         background: var(--shimmer-base);
         flex-shrink: 0;
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent);
       }
 
       .sidebar-nav {
@@ -201,7 +202,7 @@
       }
 
       .sidebar-item.active {
-        background-color: color-mix(in srgb, var(--shimmer-base) 70%, transparent);
+        background-color: var(--item-active);
       }
 
       .sidebar-item-dot {
@@ -232,12 +233,12 @@
       .sidebar-footer-row {
         height: 34px;
         border-radius: 8px;
-        background-color: color-mix(in srgb, var(--shimmer-base) 50%, transparent);
+        background-color: var(--footer-row);
       }
 
       .skeleton-card {
         border: 1px solid var(--card-border);
-        background-color: color-mix(in srgb, var(--card) 60%, transparent);
+        background-color: var(--card-bg);
         border-radius: var(--radius);
         padding: 18px;
         display: flex;
@@ -392,8 +393,8 @@
         border-radius: 50%;
         margin: 0 auto;
         border: 26px solid var(--shimmer-base);
-        border-right-color: color-mix(in srgb, var(--shimmer-base) 60%, transparent);
-        border-bottom-color: color-mix(in srgb, var(--shimmer-base) 60%, transparent);
+        border-right-color: var(--item-active);
+        border-bottom-color: var(--item-active);
         position: relative;
       }
     </style>
