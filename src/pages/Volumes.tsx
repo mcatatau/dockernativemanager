@@ -452,11 +452,11 @@ const Volumes = () => {
                     <TableCell className="text-muted-foreground text-xs">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(v.created_at).toLocaleDateString()}
+                        {v.created_at ? new Date(v.created_at).toLocaleDateString() : "N/A"}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs font-mono">
-                      {v.size >= 0 ? formatBytes(v.size) : "N/A"}
+                      {v.size > 0 ? formatBytes(v.size) : "N/A"}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs font-mono max-w-xs truncate">
                       <TooltipProvider>
