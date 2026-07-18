@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { useDocker } from "@/context/DockerContext";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";

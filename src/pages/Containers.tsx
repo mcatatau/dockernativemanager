@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { useDocker } from "@/context/DockerContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
@@ -80,14 +78,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line } from "recharts";
 import { memo } from "react";
-
-const formatBytes = (bytes: number) => {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-};
+import { formatBytes } from "@/lib/utils";
 
 const Containers = () => {
   const { containers, loading, refreshContainers } = useDocker();
@@ -1066,32 +1057,6 @@ const ContainerRow = ({
   openInspect,
   openStatus,
 }: ContainerRowProps) => {
-  const [, setStats] = useState<{
-    cpu_percent: number;
-    memory_usage: number;
-    memory_limit: number;
-  } | null>(null);
-
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    if (container.status === "running") {
-      const setupStats = async () => {
-        unlisten = await listen<{ cpu_percent: number; memory_usage: number; memory_limit: number }>(
-          `container-stats-${container.id}`,
-          (event) => {
-            setStats(event.payload);
-          },
-        );
-      };
-      setupStats();
-    } else {
-      setStats(null);
-    }
-    return () => {
-      if (unlisten) unlisten();
-    };
-  }, [container.status, container.id]);
-
   return (
     <TableRow className={cn("border-border hover:bg-muted transition-colors group", isSelected && "bg-muted")}>
       <TableCell>
@@ -1263,7 +1228,7 @@ const TerminalComponent = ({ containerId, shell, user }: { containerId: string; 
 
     // Send keystrokes to backend stdin
     const dataDispose = term.onData((data) => {
-      writeStdin(containerId, data).catch(() => {});
+      writeStdin(containerId, data).catch((e) => console.error("Error writing to stdin:", e));
     });
 
     let unlisten: (() => void) | undefined;

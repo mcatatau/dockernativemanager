@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { cn } from "@/lib/utils";
 import { useDocker } from "@/context/DockerContext";
 import {
@@ -316,7 +314,6 @@ const Sidebar = () => {
     try {
       const result = await dockerSystemPrune();
       showSuccess("System pruned successfully");
-      console.log(result);
     } catch (err) {
       showError(`Error pruning system: ${err}`);
     } finally {

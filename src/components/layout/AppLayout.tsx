@@ -8,8 +8,6 @@
  *
  */
 
-"use client";
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "./Sidebar";
 import { X, Minus, Square } from "lucide-react";

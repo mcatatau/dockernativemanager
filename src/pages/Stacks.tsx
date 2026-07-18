@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { useDocker } from "@/context/DockerContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 
@@ -111,7 +109,7 @@ const COMPOSE_TEMPLATES = [
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: changeme
       POSTGRES_DB: mydb
     ports:
       - "5432:5432"
@@ -127,7 +125,7 @@ volumes:
     image: mongo:latest
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_PASSWORD: changeme
     ports:
       - "27017:27017"
     volumes:
@@ -217,7 +215,6 @@ const Stacks = () => {
     } catch (err) {
       showError(`Error removing stack ${stackToDelete}: ${err}`);
     } finally {
-      setIsActionLoading(true); // Should this be false? Yes, but keeping original logic if it was true, wait...
       setIsActionLoading(false);
     }
   };

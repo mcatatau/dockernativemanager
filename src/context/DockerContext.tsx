@@ -208,12 +208,12 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       await Promise.all([
-        refreshContainers().catch(() => {}),
-        refreshStacks().catch(() => {}),
-        refreshImages().catch(() => {}),
-        refreshVolumes().catch(() => {}),
-        refreshNetworks().catch(() => {}),
-        refreshSystemInfo().catch(() => {}),
+        refreshContainers().catch((e) => console.error("Error refreshing containers:", e)),
+        refreshStacks().catch((e) => console.error("Error refreshing stacks:", e)),
+        refreshImages().catch((e) => console.error("Error refreshing images:", e)),
+        refreshVolumes().catch((e) => console.error("Error refreshing volumes:", e)),
+        refreshNetworks().catch((e) => console.error("Error refreshing networks:", e)),
+        refreshSystemInfo().catch((e) => console.error("Error refreshing system info:", e)),
       ]);
     } catch (err) {
       console.error("Error refreshing Docker data:", err);
@@ -405,7 +405,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
     };
 
-    setup();
+    setup().catch((e) => console.error("Error setting up host-stats listener:", e));
     return () => {
       if (unlisten) unlisten();
     };
@@ -440,7 +440,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
     };
 
-    setup();
+    setup().catch((e) => console.error("Error setting up connection status listener:", e));
     return () => {
       if (unlisten) unlisten();
     };

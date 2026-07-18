@@ -8,8 +8,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { useEffect, useState } from "react";
 import {
   getSwarmInfo,

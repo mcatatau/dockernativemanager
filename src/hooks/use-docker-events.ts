@@ -16,7 +16,7 @@ export function useDockerEvent(
       });
     };
 
-    setup();
+    setup().catch((e) => console.error("Error setting up docker event listener:", e));
     return () => {
       if (unlisten) unlisten();
     };

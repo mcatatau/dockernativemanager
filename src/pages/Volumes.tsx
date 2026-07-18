@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { VolumeFileBrowser } from "@/components/volumes/VolumeFileBrowser";
 import { useDocker } from "@/context/DockerContext";
 import { useState } from "react";
@@ -444,23 +442,6 @@ const Volumes = () => {
                           <Database className="w-4 h-4 text-blue-500" />
                           {v.name}
                         </div>
-
-                        {/* Removi aqui, fiquei olhando uns 5 min e enjoei, muita info... */}
-
-                        {/* {Object.keys(v.labels).length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {Object.entries(v.labels).slice(0, 2).map(([key, value]) => (
-                              <Badge key={key} variant="outline" className="text-[9px] px-1 py-0 h-4 bg-blue-500/5 text-blue-400 border-blue-500/20 max-w-[120px] truncate">
-                                {key}: {value}
-                              </Badge>
-                            ))}
-                            {Object.keys(v.labels).length > 2 && (
-                              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-muted text-muted-foreground border-border">
-                                +{Object.keys(v.labels).length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        )} */}
                       </div>
                     </TableCell>
                     <TableCell>
