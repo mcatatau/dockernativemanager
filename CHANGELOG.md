@@ -1,3 +1,10 @@
+# [1.14.0-beta.2](https://github.com/pedrofariasx/dockernativemanager/compare/v1.14.0-beta.1...v1.14.0-beta.2) (2026-07-18)
+
+
+### Bug Fixes
+
+* substituir Github icon removido do lucide-react v1 ([fbf45cf](https://github.com/pedrofariasx/dockernativemanager/commit/fbf45cfd96f7ec33b74b424d2458e41b02612fcf))
+
 # [1.14.0-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.13.1-beta.1...v1.14.0-beta.1) (2026-07-18)
 
 
