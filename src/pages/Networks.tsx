@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { useDocker } from "@/context/DockerContext";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
@@ -576,26 +574,29 @@ const Networks = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {Object.entries(parsedInspectData[0]?.Containers || parsedInspectData.Containers || {}).map(
-                          ([id, info]: [string, any]) => (
-                            <TableRow key={id} className="border-border hover:bg-muted/50">
-                              <TableCell className="font-medium">{info.Name}</TableCell>
-                              <TableCell className="font-mono text-xs">{info.IPv4Address || "N/A"}</TableCell>
-                              <TableCell className="font-mono text-xs">{info.MacAddress || "N/A"}</TableCell>
-                              <TableCell className="text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
-                                  onClick={() => handleDisconnect(selectedNetwork!.id, id, selectedNetwork!.name)}
-                                >
-                                  <Unlink className="w-3.5 h-3.5 mr-1" />
-                                  Disconnect
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ),
-                        )}
+                        {Object.entries(
+                          (parsedInspectData[0]?.Containers || parsedInspectData.Containers || {}) as Record<
+                            string,
+                            { Name: string; IPv4Address: string; MacAddress: string }
+                          >,
+                        ).map(([id, info]) => (
+                          <TableRow key={id} className="border-border hover:bg-muted/50">
+                            <TableCell className="font-medium">{info.Name}</TableCell>
+                            <TableCell className="font-mono text-xs">{info.IPv4Address || "N/A"}</TableCell>
+                            <TableCell className="font-mono text-xs">{info.MacAddress || "N/A"}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
+                                onClick={() => handleDisconnect(selectedNetwork!.id, id, selectedNetwork!.name)}
+                              >
+                                <Unlink className="w-3.5 h-3.5 mr-1" />
+                                Disconnect
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                         {Object.keys(parsedInspectData[0]?.Containers || parsedInspectData.Containers || {}).length ===
                           0 && (
                           <TableRow>

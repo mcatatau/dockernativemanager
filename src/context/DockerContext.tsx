@@ -11,6 +11,7 @@
  * License: MIT
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { showSuccess, showError } from "@/utils/toast";
@@ -65,6 +66,7 @@ interface DockerContextType {
   hostStatsHistory: HostStats[];
   isConnected: boolean;
   isManagingService: boolean;
+  hasLoadedOnce: boolean;
   loading: Record<string, boolean>;
   refreshAll: () => Promise<void>;
   refreshContainers: () => Promise<void>;
@@ -109,6 +111,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     networks: true,
     systemInfo: true,
   });
+  const [hasLoadedOnce, setHasLoadedOnce] = useState<boolean>(false);
 
   const refreshContainers = useCallback(async () => {
     try {
@@ -208,15 +211,17 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       await Promise.all([
-        refreshContainers().catch(() => {}),
-        refreshStacks().catch(() => {}),
-        refreshImages().catch(() => {}),
-        refreshVolumes().catch(() => {}),
-        refreshNetworks().catch(() => {}),
-        refreshSystemInfo().catch(() => {}),
+        refreshContainers().catch((e) => console.error("Error refreshing containers:", e)),
+        refreshStacks().catch((e) => console.error("Error refreshing stacks:", e)),
+        refreshImages().catch((e) => console.error("Error refreshing images:", e)),
+        refreshVolumes().catch((e) => console.error("Error refreshing volumes:", e)),
+        refreshNetworks().catch((e) => console.error("Error refreshing networks:", e)),
+        refreshSystemInfo().catch((e) => console.error("Error refreshing system info:", e)),
       ]);
     } catch (err) {
       console.error("Error refreshing Docker data:", err);
+    } finally {
+      setHasLoadedOnce(true);
     }
   }, [refreshContainers, refreshStacks, refreshImages, refreshVolumes, refreshNetworks, refreshSystemInfo]);
 
@@ -344,6 +349,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     // Initial load
     refreshAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only once on mount
 
   useDockerEvent(
@@ -405,7 +411,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
     };
 
-    setup();
+    setup().catch((e) => console.error("Error setting up host-stats listener:", e));
     return () => {
       if (unlisten) unlisten();
     };
@@ -440,7 +446,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
     };
 
-    setup();
+    setup().catch((e) => console.error("Error setting up connection status listener:", e));
     return () => {
       if (unlisten) unlisten();
     };
@@ -460,6 +466,7 @@ export const DockerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         hostStatsHistory,
         isConnected,
         isManagingService,
+        hasLoadedOnce,
         loading,
         refreshAll,
         refreshContainers,

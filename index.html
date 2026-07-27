@@ -16,17 +16,50 @@
     <title>Docker Native Manager</title>
     <style>
       :root {
-        --bg-light: #ffffff;
-        --bg-dark: #09090b;
-        --sidebar-light: #f8fafc;
-        --sidebar-dark: #09090b;
-        --border-light: #e2e8f0;
-        --border-dark: #27272a;
-        --skeleton-light: #f1f5f9;
-        --skeleton-dark: #18181b;
+        --background: hsl(0 0% 100%);
+        --foreground: hsl(222.2 84% 4.9%);
+        --card: hsl(0 0% 100%);
+        --card-border: hsl(220 13% 91%);
+        --muted: hsl(210 10% 94.1%);
+        --muted-foreground: hsl(215.4 16.3% 46.9%);
+        --border: hsl(220 13% 91%);
+        --sidebar-background: hsl(0 0% 98%);
+        --sidebar-foreground: hsl(240 5.3% 26.1%);
+        --sidebar-border: hsl(220 13% 91%);
+        --radius: 0.75rem;
+        --shimmer-base: hsl(210 10% 94.1%);
+        --shimmer-hi: hsl(0 0% 100%);
+        --header-bg: rgba(255, 255, 255, 0.5);
+        --card-bg: rgba(255, 255, 255, 0.5);
+        --item-active: hsl(210 10% 91%);
+        --footer-row: hsl(210 10% 94.1%);
       }
 
-      html, body {
+      .dark {
+        --background: hsl(240 10% 3.9%);
+        --foreground: hsl(0 0% 98%);
+        --card: hsl(240 10% 3.9%);
+        --card-border: hsl(240 3.7% 15.9%);
+        --muted: hsl(240 3.7% 15.9%);
+        --muted-foreground: hsl(240 5% 64.9%);
+        --border: hsl(240 3.7% 15.9%);
+        --sidebar-background: hsl(240 5.9% 10%);
+        --sidebar-foreground: hsl(240 4.8% 95.9%);
+        --sidebar-border: hsl(240 3.7% 15.9%);
+        --shimmer-base: hsl(240 3.7% 15.9%);
+        --shimmer-hi: hsl(240 4.8% 22%);
+        --header-bg: rgba(9, 9, 11, 0.5);
+        --card-bg: rgba(9, 9, 11, 0.5);
+        --item-active: hsl(240 3.7% 19%);
+        --footer-row: hsl(240 3.7% 15.9%);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
         margin: 0;
         padding: 0;
         height: 100vh;
@@ -37,22 +70,30 @@
 
       #root {
         display: flex;
-        height: 100vh;
-        width: 100%;
+        height: calc(100vh - 2px);
+        width: calc(100vw - 2px);
+        margin: 1px;
         overflow: hidden;
-        background-color: var(--bg-light);
-        border-radius: 15px;
-        box-sizing: border-box;
-        font-family: system-ui, -apple-system, sans-serif;
+        background-color: var(--background);
+        border-radius: 12px;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
         box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+        color: var(--foreground);
       }
 
       .dark #root {
-        background-color: var(--bg-dark);
         box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
       }
 
       .maximized #root {
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
         border-radius: 0 !important;
         box-shadow: none !important;
       }
@@ -60,29 +101,11 @@
       .skeleton-sidebar {
         width: 256px;
         height: 100%;
-        border-right: 1px solid var(--border-light);
-        background-color: var(--sidebar-light);
+        border-right: 1px solid var(--sidebar-border);
+        background-color: var(--sidebar-background);
         display: flex;
         flex-direction: column;
-        box-sizing: border-box;
         flex-shrink: 0;
-      }
-
-      .dark .skeleton-sidebar {
-        background-color: var(--sidebar-dark);
-        border-color: var(--border-dark);
-      }
-
-      .sidebar-header {
-        padding: 24px;
-        border-bottom: 1px solid var(--border-light);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .dark .sidebar-header {
-        border-color: var(--border-dark);
       }
 
       .skeleton-main {
@@ -90,24 +113,27 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        box-sizing: border-box;
         overflow: hidden;
       }
 
       .skeleton-header {
         height: 48px;
-        border-bottom: 1px solid var(--border-light);
+        border-bottom: 1px solid var(--border);
         width: 100%;
-        box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: flex-end;
         padding: 0 16px;
         gap: 8px;
+        background-color: var(--header-bg);
       }
 
-      .dark .skeleton-header {
-        border-color: var(--border-dark);
+      .skeleton-header-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
       }
 
       .skeleton-content {
@@ -116,71 +142,269 @@
         overflow: hidden;
       }
 
-      .skeleton-box {
-        background-color: var(--skeleton-light);
+      .skeleton-box,
+      .sk {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--shimmer-base);
         border-radius: 0.5rem;
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
 
-      .dark .skeleton-box {
-        background-color: var(--skeleton-dark);
+      .skeleton-box::after,
+      .sk::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent 0%, var(--shimmer-hi) 50%, transparent 100%);
+        animation: shimmer 1.6s infinite;
       }
 
-      .skeleton-card {
-        border: 1px solid var(--border-light);
-        background-color: rgba(255, 255, 255, 0.5);
-        border-radius: 0.75rem;
+      @keyframes shimmer {
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .sidebar-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--sidebar-border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .sidebar-logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--shimmer-base);
+        flex-shrink: 0;
+      }
+
+      .sidebar-nav {
+        flex: 1;
         padding: 16px;
         display: flex;
         flex-direction: column;
-      }
-      .dark .skeleton-card {
-        border-color: var(--border-dark);
-        background-color: rgba(9, 9, 11, 0.5);
+        gap: 4px;
       }
 
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: .5; }
-      }
-
-      .mb-2 { margin-bottom: 8px; }
-      .mb-4 { margin-bottom: 16px; }
-      .mb-6 { margin-bottom: 24px; }
-      .w-6 { width: 24px; }
-      .w-10 { width: 40px; }
-      .w-28 { width: 112px; }
-      .w-32 { width: 128px; }
-      .w-48 { width: 192px; }
-      .h-4 { height: 16px; }
-      .h-5 { height: 20px; }
-      .h-6 { height: 24px; }
-      .h-8 { height: 32px; }
-      .h-10 { height: 40px; }
-      .h-24 { height: 96px; }
-      .h-64 { height: 256px; }
-      .h-48 { height: 192px; }
-      
-      .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-      .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-      
       .sidebar-item {
         height: 36px;
         width: 100%;
-        margin-bottom: 8px;
-        border-radius: 6px;
-        background-color: var(--skeleton-light);
-        opacity: 0.3;
+        border-radius: 8px;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 14px;
       }
-      .dark .sidebar-item { background-color: var(--skeleton-dark); }
+
+      .sidebar-item.active {
+        background-color: var(--item-active);
+      }
+
+      .sidebar-item-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        background-color: var(--shimmer-base);
+        flex-shrink: 0;
+        opacity: 0.55;
+      }
+
+      .sidebar-item-bar {
+        height: 10px;
+        width: 110px;
+        border-radius: 5px;
+        background-color: var(--shimmer-base);
+        opacity: 0.45;
+      }
+
+      .sidebar-footer {
+        padding: 16px;
+        border-top: 1px solid var(--sidebar-border);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .sidebar-footer-row {
+        height: 34px;
+        border-radius: 8px;
+        background-color: var(--footer-row);
+      }
+
+      .skeleton-card {
+        border: 1px solid var(--card-border);
+        background-color: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .mb-2 {
+        margin-bottom: 8px;
+      }
+      .mb-4 {
+        margin-bottom: 16px;
+      }
+      .mb-6 {
+        margin-bottom: 24px;
+      }
+      .w-6 {
+        width: 24px;
+      }
+      .w-8 {
+        width: 32px;
+      }
+      .w-12 {
+        width: 48px;
+      }
+      .w-16 {
+        width: 64px;
+      }
+      .w-20 {
+        width: 80px;
+      }
+      .w-24 {
+        width: 96px;
+      }
+      .w-28 {
+        width: 112px;
+      }
+      .w-32 {
+        width: 128px;
+      }
+      .w-40 {
+        width: 160px;
+      }
+      .w-48 {
+        width: 192px;
+      }
+      .w-64 {
+        width: 256px;
+      }
+      .h-4 {
+        height: 16px;
+      }
+      .h-5 {
+        height: 20px;
+      }
+      .h-6 {
+        height: 24px;
+      }
+      .h-8 {
+        height: 32px;
+      }
+      .h-10 {
+        height: 40px;
+      }
+      .h-12 {
+        height: 48px;
+      }
+      .h-24 {
+        height: 96px;
+      }
+      .h-48 {
+        height: 192px;
+      }
+      .h-64 {
+        height: 256px;
+      }
+
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .statcard-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .statcard-title {
+        height: 10px;
+        width: 72px;
+        border-radius: 5px;
+      }
+      .statcard-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        opacity: 0.5;
+      }
+      .statcard-value {
+        height: 30px;
+        width: 56px;
+        border-radius: 7px;
+      }
+      .statcard-sub {
+        height: 10px;
+        width: 120px;
+        border-radius: 5px;
+        margin-top: 10px;
+        opacity: 0.6;
+      }
+      .statcard-spark {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 44px;
+        opacity: 0.22;
+        padding: 0 4px;
+      }
+
+      .spark-line {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .spark-line polyline {
+        fill: none;
+        stroke: var(--shimmer-base);
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+
+      .donut {
+        width: 176px;
+        height: 176px;
+        border-radius: 50%;
+        margin: 0 auto;
+        border: 26px solid var(--shimmer-base);
+        border-right-color: var(--item-active);
+        border-bottom-color: var(--item-active);
+        position: relative;
+      }
     </style>
     <script>
-      (function() {
+      (function () {
         try {
-          const theme = localStorage.getItem('theme');
-          const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
-          if (theme === 'dark' || (!theme && supportDarkMode)) {
-            document.documentElement.classList.add('dark');
+          const theme = localStorage.getItem("theme");
+          const supportDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches === true;
+          if (theme === "dark" || (!theme && supportDarkMode)) {
+            document.documentElement.classList.add("dark");
           }
         } catch (e) {}
       })();
@@ -190,65 +414,196 @@
   <body>
     <div id="root">
       <div class="skeleton-sidebar">
-        <div class="sidebar-header mb-4">
-          <div class="skeleton-box h-10 w-10" style="border-radius: 0.5rem;"></div>
-          <div class="skeleton-box h-5 w-28"></div>
+        <div class="sidebar-header">
+          <div class="sidebar-logo"></div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div class="skeleton-box h-5 w-24"></div>
+            <div class="skeleton-box h-3 w-12" style="opacity: 0.5"></div>
+          </div>
         </div>
-        <div style="padding: 0 16px;">
-          <div class="sidebar-item" style="opacity: 0.8;"></div>
-          <div class="sidebar-item"></div>
-          <div class="sidebar-item"></div>
-          <div class="sidebar-item"></div>
-          <div class="sidebar-item"></div>
-          <div class="sidebar-item"></div>
+        <div class="sidebar-nav">
+          <div class="sidebar-item active">
+            <div class="sidebar-item-dot"></div>
+            <div class="sidebar-item-bar"></div>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-item-dot"></div>
+            <div class="sidebar-item-bar"></div>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-item-dot"></div>
+            <div class="sidebar-item-bar"></div>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-item-dot"></div>
+            <div class="sidebar-item-bar"></div>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-item-dot"></div>
+            <div class="sidebar-item-bar"></div>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-item-dot"></div>
+            <div class="sidebar-item-bar"></div>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-item-dot"></div>
+            <div class="sidebar-item-bar"></div>
+          </div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="sidebar-footer-row"></div>
+          <div class="sidebar-footer-row"></div>
         </div>
       </div>
       <div class="skeleton-main">
         <div class="skeleton-header">
-          <div class="skeleton-box h-6 w-6" style="opacity: 0.2;"></div>
-          <div class="skeleton-box h-6 w-6" style="opacity: 0.2;"></div>
-          <div class="skeleton-box h-6 w-6" style="opacity: 0.2;"></div>
+          <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
+          <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
+          <div class="skeleton-box h-6 w-6" style="opacity: 0.2"></div>
         </div>
         <div class="skeleton-content">
           <div class="skeleton-box h-8 w-48 mb-2"></div>
-          <div class="skeleton-box h-4 w-32 mb-6" style="opacity: 0.5;"></div>
-          
+          <div class="skeleton-box h-4 w-32 mb-6" style="opacity: 0.5"></div>
+
           <div class="grid-4 mb-6">
             <div class="skeleton-card h-24">
-              <div class="skeleton-box h-4 w-28 mb-2"></div>
-              <div class="skeleton-box h-8 w-12"></div>
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,24 20,14 40,20 60,8 80,18 100,12" />
+                </svg>
+              </div>
             </div>
             <div class="skeleton-card h-24">
-              <div class="skeleton-box h-4 w-28 mb-2"></div>
-              <div class="skeleton-box h-8 w-12"></div>
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,18 20,26 40,12 60,22 80,16 100,24" />
+                </svg>
+              </div>
             </div>
             <div class="skeleton-card h-24">
-              <div class="skeleton-box h-4 w-28 mb-2"></div>
-              <div class="skeleton-box h-8 w-12"></div>
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,28 20,20 40,24 60,13 80,19 100,10" />
+                </svg>
+              </div>
             </div>
             <div class="skeleton-card h-24">
-              <div class="skeleton-box h-4 w-28 mb-2"></div>
-              <div class="skeleton-box h-8 w-12"></div>
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,16 20,21 40,11 60,24 80,17 100,14" />
+                </svg>
+              </div>
             </div>
           </div>
-          
+
+          <div class="grid-4 mb-6">
+            <div class="skeleton-card h-24">
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,20 20,15 40,23 60,12 80,17 100,22" />
+                </svg>
+              </div>
+            </div>
+            <div class="skeleton-card h-24">
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,23 20,17 40,12 60,20 80,15 100,21" />
+                </svg>
+              </div>
+            </div>
+            <div class="skeleton-card h-24">
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,17 20,24 40,13 60,19 80,10 100,23" />
+                </svg>
+              </div>
+            </div>
+            <div class="skeleton-card h-24">
+              <div class="statcard-top">
+                <div class="skeleton-box statcard-title"></div>
+                <div class="skeleton-box statcard-icon"></div>
+              </div>
+              <div class="skeleton-box statcard-value"></div>
+              <div class="skeleton-box statcard-sub"></div>
+              <div class="statcard-spark">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,21 20,16 40,18 60,11 80,23 100,14" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
           <div class="grid-3 mb-6">
             <div class="skeleton-card h-64">
               <div class="skeleton-box h-6 w-48 mb-4"></div>
-              <div class="skeleton-box h-4 w-full mb-2"></div>
-              <div class="skeleton-box h-4 w-full mb-2"></div>
-              <div class="skeleton-box h-4 w-full mb-2"></div>
+              <div class="grid-2 mb-4">
+                <div class="skeleton-box h-4 w-full"></div>
+                <div class="skeleton-box h-4 w-full"></div>
+                <div class="skeleton-box h-4 w-full"></div>
+                <div class="skeleton-box h-4 w-full"></div>
+                <div class="skeleton-box h-4 w-full"></div>
+                <div class="skeleton-box h-4 w-full"></div>
+              </div>
+              <div class="statcard-spark" style="height: 56px; opacity: 0.14">
+                <svg class="spark-line" viewBox="0 0 100 40" preserveAspectRatio="none">
+                  <polyline points="0,22 14,15 28,25 42,12 56,20 70,10 84,24 100,16" />
+                </svg>
+              </div>
             </div>
             <div class="skeleton-card h-64">
               <div class="skeleton-box h-6 w-48 mb-4"></div>
-              <div class="skeleton-box h-48 w-48 rounded-full mx-auto"></div>
+              <div class="donut"></div>
             </div>
           </div>
-          
+
           <div class="skeleton-card h-48 w-full">
             <div class="skeleton-box h-6 w-48 mb-4"></div>
-            <div class="skeleton-box h-8 w-full mb-2"></div>
-            <div class="skeleton-box h-8 w-full"></div>
+            <div class="skeleton-box h-10 w-full mb-2"></div>
+            <div class="skeleton-box h-10 w-full mb-2"></div>
+            <div class="skeleton-box h-10 w-full"></div>
           </div>
         </div>
       </div>

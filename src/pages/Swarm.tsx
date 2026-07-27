@@ -8,8 +8,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { useEffect, useState } from "react";
 import {
   getSwarmInfo,
@@ -78,6 +76,7 @@ const Swarm = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected]);
 
   const handleInspectService = async (id: string, name: string) => {

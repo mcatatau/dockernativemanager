@@ -11,8 +11,7 @@
  * License: MIT
  */
 
-"use client";
-
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useDocker } from "@/context/DockerContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 
@@ -28,6 +27,7 @@ import {
   stopStack,
   restartStack,
   scaleStackService,
+  Container,
 } from "@/lib/docker";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -111,7 +111,7 @@ const COMPOSE_TEMPLATES = [
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: changeme
       POSTGRES_DB: mydb
     ports:
       - "5432:5432"
@@ -127,7 +127,7 @@ volumes:
     image: mongo:latest
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_PASSWORD: changeme
     ports:
       - "27017:27017"
     volumes:
@@ -171,7 +171,7 @@ const Stacks = () => {
     }
   };
   const [selectedStack, setSelectedStack] = useState<Stack | null>(null);
-  const [stackContainers, setStackContainers] = useState<any[]>([]);
+  const [stackContainers, setStackContainers] = useState<Container[]>([]);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [processingStacks, setProcessingStacks] = useState<Set<string>>(new Set());
   const [showLogsSheet, setShowLogsSheet] = useState(false);
@@ -217,7 +217,6 @@ const Stacks = () => {
     } catch (err) {
       showError(`Error removing stack ${stackToDelete}: ${err}`);
     } finally {
-      setIsActionLoading(true); // Should this be false? Yes, but keeping original logic if it was true, wait...
       setIsActionLoading(false);
     }
   };
@@ -269,7 +268,7 @@ const Stacks = () => {
       setComposeContent(content);
       setIsEditing(true);
       setShowDeployDialog(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       showError(`Error fetching compose file: ${err}`);
       // Fallback if not found, let them edit a blank one with the same name
       setNewName(stack.name);
@@ -524,7 +523,7 @@ const Stacks = () => {
   }, [showLogsSheet, logsStack, logsRefreshKey, fetchLogs]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: ReturnType<typeof setInterval>;
     if (autoRefreshLogs && showLogsSheet && logsStack) {
       intervalId = setInterval(() => fetchLogs(logsStack.name, true), 3000);
     }
@@ -985,7 +984,7 @@ const Stacks = () => {
                 Associated Containers
               </h3>
               <div className="space-y-2">
-                {stackContainers.map((c: any) => (
+                {stackContainers.map((c) => (
                   <div
                     key={c.id}
                     className="flex items-center justify-between p-3 rounded-lg border border-border bg-background/50 group"
@@ -1123,9 +1122,7 @@ const Stacks = () => {
                   onClick={() => {
                     if (stackContainers.length > 0) {
                       const services = [
-                        ...new Set(
-                          stackContainers.map((c: any) => c.labels["com.docker.compose.service"]).filter(Boolean),
-                        ),
+                        ...new Set(stackContainers.map((c) => c.labels["com.docker.compose.service"]).filter(Boolean)),
                       ];
                       if (services.length > 0) setSelectedService(services[0]);
                     }
@@ -1292,11 +1289,11 @@ const Stacks = () => {
                 list="service-options"
               />
               <datalist id="service-options">
-                {[
-                  ...new Set(stackContainers.map((c: any) => c.labels["com.docker.compose.service"]).filter(Boolean)),
-                ].map((svc) => (
-                  <option key={svc} value={svc} />
-                ))}
+                {[...new Set(stackContainers.map((c) => c.labels["com.docker.compose.service"]).filter(Boolean))].map(
+                  (svc) => (
+                    <option key={svc} value={svc} />
+                  ),
+                )}
               </datalist>
             </div>
             <div className="space-y-2">

@@ -11,8 +11,7 @@
  * License: MIT
  */
 
-"use client";
-
+/* eslint-disable react-hooks/exhaustive-deps */
 import { cn } from "@/lib/utils";
 import { useDocker } from "@/context/DockerContext";
 import {
@@ -100,12 +99,19 @@ const Sidebar = () => {
   const [isCreatingContext, setIsCreatingContext] = useState(false);
   const [newContext, setNewContext] = useState({ name: "", host: "" });
   const [showAboutDialog, setShowAboutDialog] = useState(false);
-  const [contributors, setContributors] = useState<any[]>([]);
+  const [contributors, setContributors] = useState<
+    { id: number; login: string; avatar_url: string; html_url: string; contributions: number }[]
+  >([]);
   const [isLoadingContributors, setIsLoadingContributors] = useState(false);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [latestRelease, setLatestRelease] = useState<any>(null);
+  const [latestRelease, setLatestRelease] = useState<{
+    tag_name: string;
+    body: string;
+    html_url: string;
+    assets: { id: number; name: string; browser_download_url: string }[];
+  } | null>(null);
   const [downloadingAsset, setDownloadingAsset] = useState<string | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -113,8 +119,8 @@ const Sidebar = () => {
   const [selectedSshKey, setSelectedSshKey] = useState<string>("");
   const [showSshConfig, setShowSshConfig] = useState(false);
 
-  const handleDownload = async (asset: any) => {
-    setDownloadingAsset(asset.id);
+  const handleDownload = async (asset: { id: number; name: string; browser_download_url: string }) => {
+    setDownloadingAsset(String(asset.id));
     try {
       const path = await downloadUpdate(asset.browser_download_url, asset.name);
       showSuccess(`File downloaded to: ${path}`);
@@ -314,9 +320,8 @@ const Sidebar = () => {
     setIsPruning(true);
     setShowPruneDialog(false);
     try {
-      const result = await dockerSystemPrune();
+      await dockerSystemPrune();
       showSuccess("System pruned successfully");
-      console.log(result);
     } catch (err) {
       showError(`Error pruning system: ${err}`);
     } finally {
@@ -745,7 +750,6 @@ const Sidebar = () => {
                     <ExternalLink className="w-4 h-4" />
                     <span className="text-sm font-bold">GitHub Repository</span>
                   </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
 
                 {latestVersion && appVersion && compareVersions(latestVersion, appVersion) > 0 ? (
@@ -897,7 +901,7 @@ const Sidebar = () => {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {latestRelease?.assets?.map((asset: any) => {
+                {latestRelease?.assets?.map((asset) => {
                   const name = asset.name.toLowerCase();
                   let extension = "";
 
@@ -915,14 +919,14 @@ const Sidebar = () => {
                       size="sm"
                       className={cn(
                         "h-8 px-3 gap-2 border-sidebar-border hover:border-blue-500/50 hover:bg-blue-500/5 transition-all",
-                        downloadingAsset === asset.id &&
+                        downloadingAsset === String(asset.id) &&
                           "border-blue-500 bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
                       )}
-                      onClick={() => downloadingAsset !== asset.id && handleDownload(asset)}
-                      disabled={downloadingAsset !== null && downloadingAsset !== asset.id}
+                      onClick={() => downloadingAsset !== String(asset.id) && handleDownload(asset)}
+                      disabled={downloadingAsset !== null && downloadingAsset !== String(asset.id)}
                       title={asset.name}
                     >
-                      {downloadingAsset === asset.id ? (
+                      {downloadingAsset === String(asset.id) ? (
                         <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
                       ) : (
                         <Download className="w-3 h-3 text-blue-500" />
@@ -941,7 +945,7 @@ const Sidebar = () => {
             </Button>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-bold"
-              onClick={() => openExternalLink(latestRelease?.html_url)}
+              onClick={() => latestRelease?.html_url && openExternalLink(latestRelease.html_url)}
             >
               View on GitHub
               <ExternalLink className="w-4 h-4" />

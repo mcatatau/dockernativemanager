@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { VolumeFileBrowser } from "@/components/volumes/VolumeFileBrowser";
 import { useDocker } from "@/context/DockerContext";
 import { useState } from "react";
@@ -444,23 +442,6 @@ const Volumes = () => {
                           <Database className="w-4 h-4 text-blue-500" />
                           {v.name}
                         </div>
-
-                        {/* Removi aqui, fiquei olhando uns 5 min e enjoei, muita info... */}
-
-                        {/* {Object.keys(v.labels).length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {Object.entries(v.labels).slice(0, 2).map(([key, value]) => (
-                              <Badge key={key} variant="outline" className="text-[9px] px-1 py-0 h-4 bg-blue-500/5 text-blue-400 border-blue-500/20 max-w-[120px] truncate">
-                                {key}: {value}
-                              </Badge>
-                            ))}
-                            {Object.keys(v.labels).length > 2 && (
-                              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-muted text-muted-foreground border-border">
-                                +{Object.keys(v.labels).length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        )} */}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -471,11 +452,11 @@ const Volumes = () => {
                     <TableCell className="text-muted-foreground text-xs">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(v.created_at).toLocaleDateString()}
+                        {v.created_at ? new Date(v.created_at).toLocaleDateString() : "N/A"}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs font-mono">
-                      {v.size >= 0 ? formatBytes(v.size) : "N/A"}
+                      {v.size > 0 ? formatBytes(v.size) : "N/A"}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs font-mono max-w-xs truncate">
                       <TooltipProvider>
@@ -639,7 +620,7 @@ const Volumes = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic text-emerald-500/60">
+                <p className="text-xs italic text-emerald-500/60">
                   This volume is currently not in use by any container.
                 </p>
               )}

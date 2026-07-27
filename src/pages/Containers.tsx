@@ -11,8 +11,6 @@
  * License: MIT
  */
 
-"use client";
-
 import { useDocker } from "@/context/DockerContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
@@ -25,6 +23,7 @@ import {
   deleteContainer,
   createContainer,
   getContainerLogs,
+  getContainerStats,
   Container,
   ContainerStats,
   execContainer,
@@ -80,14 +79,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line } from "recharts";
 import { memo } from "react";
-
-const formatBytes = (bytes: number) => {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-};
+import { formatBytes } from "@/lib/utils";
 
 const Containers = () => {
   const { containers, loading, refreshContainers } = useDocker();
@@ -209,11 +201,12 @@ const Containers = () => {
       const isInitial = logs === "Loading logs..." || logs === "";
       fetchLogs(!isInitial);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchLogs, logsRefreshKey, selectedContainer, panelMode]);
 
   // Effect for auto-refreshing logs
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: ReturnType<typeof setInterval>;
     if (autoRefreshLogs && selectedContainer && panelMode === "logs") {
       intervalId = setInterval(() => fetchLogs(true), 3000); // Refresh every 3 seconds silently
     }
@@ -258,11 +251,10 @@ const Containers = () => {
   };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (selectedContainer && panelMode === "status") {
       const fetchStats = async () => {
         try {
-          const { getContainerStats } = await import("@/lib/docker");
           const stats = await getContainerStats(selectedContainer.id);
           setContainerStats(stats);
           setContainerStatsHistory((prev) => {
@@ -1066,32 +1058,6 @@ const ContainerRow = ({
   openInspect,
   openStatus,
 }: ContainerRowProps) => {
-  const [, setStats] = useState<{
-    cpu_percent: number;
-    memory_usage: number;
-    memory_limit: number;
-  } | null>(null);
-
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    if (container.status === "running") {
-      const setupStats = async () => {
-        unlisten = await listen<{ cpu_percent: number; memory_usage: number; memory_limit: number }>(
-          `container-stats-${container.id}`,
-          (event) => {
-            setStats(event.payload);
-          },
-        );
-      };
-      setupStats();
-    } else {
-      setStats(null);
-    }
-    return () => {
-      if (unlisten) unlisten();
-    };
-  }, [container.status, container.id]);
-
   return (
     <TableRow className={cn("border-border hover:bg-muted transition-colors group", isSelected && "bg-muted")}>
       <TableCell>
@@ -1263,7 +1229,7 @@ const TerminalComponent = ({ containerId, shell, user }: { containerId: string; 
 
     // Send keystrokes to backend stdin
     const dataDispose = term.onData((data) => {
-      writeStdin(containerId, data).catch(() => {});
+      writeStdin(containerId, data).catch((e) => console.error("Error writing to stdin:", e));
     });
 
     let unlisten: (() => void) | undefined;
@@ -1291,6 +1257,7 @@ const TerminalComponent = ({ containerId, shell, user }: { containerId: string; 
       window.removeEventListener("resize", handleResize);
       term.dispose();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerId, shell, user]);
 
   return (
@@ -1306,7 +1273,7 @@ interface StatCardProps {
   subtext: string | React.ReactNode;
   icon: React.ReactNode;
   loading: boolean;
-  chartData?: any[];
+  chartData?: Record<string, number>[];
   series?: { key: string; color: string }[];
 }
 

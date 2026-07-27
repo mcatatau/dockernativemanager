@@ -236,25 +236,54 @@ pub async fn delete_volume_file(volume_name: String, file_path: String) -> Resul
 #[tauri::command]
 pub async fn get_volumes() -> Result<Vec<VolumeInfo>, String> {
     let docker = get_docker()?;
-    let volumes = docker
-        .list_volumes(None::<ListVolumesOptions<String>>)
-        .await
-        .map_err(|e| e.to_string())?;
+
+    let (volumes, df) = tokio::join!(
+        docker.list_volumes(None::<ListVolumesOptions<String>>),
+        docker.df(),
+    );
+
+    let volumes = volumes.map_err(|e| e.to_string())?;
+    let df = df.map_err(|e| e.to_string())?;
+
+    // Map of volume name -> usage data (size / ref_count), sourced from `df` which
+    // actually reports per-volume disk usage. `list_volumes` does not return it.
+    let usage_by_name: std::collections::HashMap<String, (i64, i64)> = df
+        .volumes
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|v| {
+            let usage = v.usage_data?;
+            Some((v.name, (usage.size as i64, usage.ref_count as i64)))
+        })
+        .collect();
 
     Ok(volumes
         .volumes
         .unwrap_or_default()
         .into_iter()
         .map(|v| {
-            let usage = v.usage_data;
+            let usage = usage_by_name.get(&v.name).copied().unwrap_or((-1, -1));
             VolumeInfo {
                 name: v.name,
                 driver: v.driver,
                 mountpoint: v.mountpoint,
-                created_at: v.created_at.map(|t| t.to_string()).unwrap_or_default(),
+                created_at: v
+                    .created_at
+                    .map(|t| {
+                        format!(
+                            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+                            t.year(),
+                            t.month() as u8,
+                            t.day(),
+                            t.hour(),
+                            t.minute(),
+                            t.second()
+                        )
+                    })
+                    .unwrap_or_default(),
                 labels: v.labels,
-                size: usage.as_ref().map(|u| u.size).unwrap_or(-1),
-                usage_count: usage.as_ref().map(|u| u.ref_count).unwrap_or(-1),
+                size: usage.0,
+                usage_count: usage.1,
             }
         })
         .collect())

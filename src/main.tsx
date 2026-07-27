@@ -13,17 +13,6 @@ import App from "./App.tsx";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 
-if (!import.meta.env.DEV) {
-  document.addEventListener("contextmenu", (e) => e.preventDefault());
-  document.addEventListener("dragstart", (e) => e.preventDefault());
-  document.addEventListener("selectstart", (e) => e.preventDefault());
-  document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "a")) {
-      e.preventDefault();
-    }
-  });
-}
-
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <App />

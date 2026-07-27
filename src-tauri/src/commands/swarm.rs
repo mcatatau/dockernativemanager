@@ -50,37 +50,6 @@ pub async fn get_swarm_info() -> Result<Option<SwarmInfo>, String> {
     }))
 }
 
-/*
-#[tauri::command]
-pub async fn list_nodes() -> Result<Vec<NodeInfo>, String> {
-    let docker = get_docker()?;
-    let nodes = docker.list_nodes(None::<bollard::node::ListNodesOptions<String>>).await.map_err(|e: bollard::errors::Error| e.to_string())?;
-
-    Ok(nodes.into_iter().map(|n| {
-        let id = n.id.unwrap_or_default();
-        let hostname = n.description.as_ref().and_then(|d| d.hostname.clone()).unwrap_or_default();
-        let role = match n.spec.as_ref().and_then(|s| s.role.as_ref()) {
-            Some(bollard::models::NodeSpecRoleEnum::MANAGER) => "manager".to_string(),
-            Some(bollard::models::NodeSpecRoleEnum::WORKER) => "worker".to_string(),
-            _ => "unknown".to_string(),
-        };
-        let status = n.status.as_ref().and_then(|s| s.state.as_ref()).map(|s| format!("{:?}", s)).unwrap_or_default();
-        let availability = n.spec.as_ref().and_then(|s| s.availability.as_ref()).map(|a| format!("{:?}", a)).unwrap_or_default();
-        let ip_address = n.status.as_ref().and_then(|s| s.addr.clone()).unwrap_or_default();
-        let engine_version = n.description.as_ref().and_then(|d| d.engine.as_ref()).and_then(|e| e.engine_version.clone()).unwrap_or_default();
-
-        NodeInfo {
-            id,
-            hostname,
-            role,
-            status,
-            availability,
-            ip_address,
-            engine_version,
-        }
-    }).collect())
-}
-*/
 #[derive(serde::Deserialize)]
 struct DockerNodeLsOutput {
     #[serde(rename = "ID", default)]
@@ -230,14 +199,6 @@ pub async fn inspect_service(id: String) -> Result<String, String> {
     serde_json::to_string_pretty(&service).map_err(|e: serde_json::Error| e.to_string())
 }
 
-/*
-#[tauri::command]
-pub async fn inspect_node(id: String) -> Result<String, String> {
-    let docker = get_docker()?;
-    let node = docker.inspect_node(&id).await.map_err(|e: bollard::errors::Error| e.to_string())?;
-    serde_json::to_string_pretty(&node).map_err(|e: serde_json::Error| e.to_string())
-}
-*/
 #[tauri::command]
 pub async fn inspect_node(id: String) -> Result<String, String> {
     let output = std::process::Command::new("docker")
