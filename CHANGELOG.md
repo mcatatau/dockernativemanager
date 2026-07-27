@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0...v1.15.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* mover CSS do skeleton para arquivo externo e isolar suas variáveis com --sk- ([0c25a6f](https://github.com/pedrofariasx/dockernativemanager/commit/0c25a6f7764aeb4ce2f8a376bb8b0cb139f4668d))
+
 ## [1.15.1-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0...v1.15.1-beta.1) (2026-07-27)
 
 
