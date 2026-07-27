@@ -1,3 +1,21 @@
+# [1.15.0](https://github.com/pedrofariasx/dockernativemanager/compare/v1.14.0...v1.15.0) (2026-07-27)
+
+
+### Bug Fixes
+
+* ajustar layout e cores do skeleton e header dos botoes ([3691974](https://github.com/pedrofariasx/dockernativemanager/commit/3691974dd684d039e3d79730b756be8796f971d3))
+* aprimorar loading e alerta de daemon ([44bda3b](https://github.com/pedrofariasx/dockernativemanager/commit/44bda3b1220aff4b1dfdcd835e6ba9e9cf7a487e))
+* corrigir build da tela de carregamento removendo color-mix/backdrop-filter ([232b75c](https://github.com/pedrofariasx/dockernativemanager/commit/232b75c6a782046afa427c739e40fa5e7074903c))
+* corrigir exibição de created e size na aba de volumes ([cc83d4b](https://github.com/pedrofariasx/dockernativemanager/commit/cc83d4b9da183579d60a9446077b990bb6d18bd7))
+* corrigir todos os warnings do lint (28 warnings) ([aeb54df](https://github.com/pedrofariasx/dockernativemanager/commit/aeb54dfc5672fb7e60e022132919375ee561cf3f))
+* remover ícone ExternalLink duplicado no Sidebar ([c22a695](https://github.com/pedrofariasx/dockernativemanager/commit/c22a6954447cce005a4d8ac069de480ff5e9f514))
+
+
+### Features
+
+* migrate to TypeScript 7 and replace ESLint with oxlint ([418468f](https://github.com/pedrofariasx/dockernativemanager/commit/418468f839327ee12a620b300d68917562d0bf70))
+* tornar tiles do dashboard clicáveis e direcionar para a aba correta ([633227a](https://github.com/pedrofariasx/dockernativemanager/commit/633227ab3d19b0e11c84de7355a32ecf5013285d))
+
 # [1.15.0-beta.7](https://github.com/pedrofariasx/dockernativemanager/compare/v1.15.0-beta.6...v1.15.0-beta.7) (2026-07-18)
 
 
