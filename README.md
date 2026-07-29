@@ -28,7 +28,7 @@ A modern, native, and blazing-fast desktop application to manage your Docker env
 
 ### ⚠️ Docker Permissions (Required)
 
-This application connects directly to the Docker daemon (via `/var/run/docker.sock`), so **your user must be in the `docker` group** — otherwise the app won't be able to list or manage your containers/images, regardless of how you installed it (`.deb`, `.rpm`, AppImage, or built from source).
+This application connects directly to the Docker daemon (via `/var/run/docker.sock`), so **your user must be in the `docker` group** — otherwise the app won't be able to list or manage your containers/images, regardless of how you installed it (`.deb`, `.rpm`, AUR, AppImage, or built from source).
 
 If you can't run `docker run hello-world` without `sudo`, set it up first:
 
@@ -57,6 +57,16 @@ sudo dnf install ./docker-native-manager-x.y.z-x86_64.rpm
 sudo zypper install ./docker-native-manager-x.y.z-x86_64.rpm
 ```
 ### Distributions using ALPM (Arch Linux, CachyOS, SteamOS, etc.)
+
+Available on the AUR as [`docker-native-manager-bin`](https://aur.archlinux.org/packages/docker-native-manager-bin):
+
+```bash
+yay -S docker-native-manager-bin
+# or
+paru -S docker-native-manager-bin
+```
+
+Or install the package manually:
 ```bash
 sudo pacman -U ./docker-native-manager-x.y.z-x86_64.pkg.tar.zst 
 ```
