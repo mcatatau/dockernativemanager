@@ -7,7 +7,7 @@
 
 A modern, native, and blazing-fast desktop application to manage your Docker environments, built with **Tauri v2**, **React**, **TypeScript**, and **Rust**.
 
-![alt text](<dockernm.png>)
+![alt text](dockernm.png)
 
 ## ✨ Features
 
@@ -48,14 +48,18 @@ Log out and back in (or restart your VM, if you're using one) for the change to 
 - Docker Desktop or Docker Engine running locally
 
 ### Distributions using DPKG (Debian, Ubuntu, Mint, etc.)
+
 ```bash
 sudo apt install ./docker-native-manager-x.y.z-x86_64.deb
 ```
+
 ### Distributions using RPM (Fedora/openSUSE, etc.)
+
 ```bash
 sudo dnf install ./docker-native-manager-x.y.z-x86_64.rpm
 sudo zypper install ./docker-native-manager-x.y.z-x86_64.rpm
 ```
+
 ### Distributions using ALPM (Arch Linux, CachyOS, SteamOS, etc.)
 
 Available on the AUR as [`docker-native-manager-bin`](https://aur.archlinux.org/packages/docker-native-manager-bin):
@@ -66,12 +70,8 @@ yay -S docker-native-manager-bin
 paru -S docker-native-manager-bin
 ```
 
-Or install the package manually:
-```bash
-sudo pacman -U ./docker-native-manager-x.y.z-x86_64.pkg.tar.zst 
-```
-
 ### Portable installation (AppImage)
+
 ```bash
 chmod +x docker-native-manager-x.y.z-x86_64.AppImage && ./docker-native-manager-x.y.z-x86_64.AppImage
 ```
@@ -79,12 +79,14 @@ chmod +x docker-native-manager-x.y.z-x86_64.AppImage && ./docker-native-manager-
 ### Manual Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/pedrofariasx/dockernativemanager.git
    cd dockernativemanager
    ```
 
 2. Install dependencies:
+
    ```bash
    pnpm install
    ```
