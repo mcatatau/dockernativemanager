@@ -1,9 +1,23 @@
+# [1.17.0-beta.2](https://github.com/pedrofariasx/dockernativemanager/compare/v1.17.0-beta.1...v1.17.0-beta.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* remove impure date creation from Images render path ([7132469](https://github.com/pedrofariasx/dockernativemanager/commit/7132469558d54f2a96f85be0ad89d187b0e7a994))
+
 ## [1.16.2](https://github.com/pedrofariasx/dockernativemanager/compare/v1.16.1...v1.16.2) (2026-09-13)
 
 
 ### Bug Fixes
 
 * resolve Monaco Editor 404 for loader.js.map by serving local assets ([a878073](https://github.com/pedrofariasx/dockernativemanager/commit/a8780735b386439d2df7531a3f2f7b139289255a))
+
+# [1.17.0-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.16.2-beta.1...v1.17.0-beta.1) (2026-09-25)
+
+
+### Features
+
+* add password authentication and auto-setup for remote contexts ([800e9ce](https://github.com/pedrofariasx/dockernativemanager/commit/800e9ce323e8c8f8685625c5e40854c6bd046910))
 
 ## [1.16.2-beta.1](https://github.com/pedrofariasx/dockernativemanager/compare/v1.16.1...v1.16.2-beta.1) (2026-09-13)
 
